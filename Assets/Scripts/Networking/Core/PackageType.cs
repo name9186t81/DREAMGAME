@@ -6,6 +6,7 @@ namespace Networking
         Ack,
         Combined,
         ConnectionRequest,
-        ConnectionResponse
+        ConnectionResponse,
+        Invalid
     }
 }

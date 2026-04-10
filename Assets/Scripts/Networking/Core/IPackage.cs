@@ -10,5 +10,7 @@ namespace Networking
 
         void Serialize(byte[] data, int offset);
         void Deserialize(ReadOnlySpan<byte> data, int offset);
+
+        public bool NeedACK => (Flags & PackageFlags.NeedAck) != 0;
     }
 }
