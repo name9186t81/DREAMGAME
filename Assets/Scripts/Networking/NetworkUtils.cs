@@ -1,0 +1,70 @@
+namespace Networking
+{
+    public static class NetworkUtils
+    {
+        public static void Convert(this byte value, byte[] array, int offset)
+        {
+            array[offset] = (byte)(value & 0xFF);
+        }
+
+        public static void Convert(this int value, byte[] array, int offset)
+        {
+            array[offset + 0] = (byte)(value & 0xFF);
+            array[offset + 1] = (byte)((value >> 8) & 0xFF);
+            array[offset + 2] = (byte)((value >> 16) & 0xFF);
+            array[offset + 3] = (byte)((value >> 24) & 0xFF);
+        }
+
+        public static void Convert(this int value, byte[] array, int offset, int intSize = 4)
+        {
+            for (int i = 0; i < intSize && i < 4; i++)
+            {
+                array[offset + i] = (byte)((value >> (8 * i)) & 0xFF);
+            }
+        }
+
+        public static void Convert(this short value, byte[] array, int offset)
+        {
+            array[offset + 0] = (byte)(value & 0xFF);
+            array[offset + 1] = (byte)((value >> 8) & 0xFF);
+        }
+
+        public static void Convert(this ushort value, byte[] array, int offset)
+        {
+            array[offset + 0] = (byte)(value & 0xFF);
+            array[offset + 1] = (byte)((value >> 8) & 0xFF);
+        }
+
+        public static void Convert(this uint value, byte[] array, int offset)
+        {
+            array[offset + 0] = (byte)(value & 0xFF);
+            array[offset + 1] = (byte)((value >> 8) & 0xFF);
+            array[offset + 2] = (byte)((value >> 16) & 0xFF);
+            array[offset + 3] = (byte)((value >> 24) & 0xFF);
+        }
+
+        public static void Convert(this long value, byte[] array, int offset)
+        {
+            array[offset + 0] = (byte)(value & 0xFF);
+            array[offset + 1] = (byte)((value >> 8) & 0xFF);
+            array[offset + 2] = (byte)((value >> 16) & 0xFF);
+            array[offset + 3] = (byte)((value >> 24) & 0xFF);
+            array[offset + 4] = (byte)((value >> 32) & 0xFF);
+            array[offset + 5] = (byte)((value >> 40) & 0xFF);
+            array[offset + 6] = (byte)((value >> 48) & 0xFF);
+            array[offset + 7] = (byte)((value >> 56) & 0xFF);
+        }
+
+        public static void Convert(this ulong value, byte[] array, int offset)
+        {
+            array[offset + 0] = (byte)(value & 0xFF);
+            array[offset + 1] = (byte)((value >> 8) & 0xFF);
+            array[offset + 2] = (byte)((value >> 16) & 0xFF);
+            array[offset + 3] = (byte)((value >> 24) & 0xFF);
+            array[offset + 4] = (byte)((value >> 32) & 0xFF);
+            array[offset + 5] = (byte)((value >> 40) & 0xFF);
+            array[offset + 6] = (byte)((value >> 48) & 0xFF);
+            array[offset + 7] = (byte)((value >> 56) & 0xFF);
+        }
+    }
+}
