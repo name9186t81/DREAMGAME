@@ -12,11 +12,11 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 8a337c25e5459044894ecb4d690a647a, type: 3}
   m_Name: Gen
   m_EditorClassIdentifier: Assembly-CSharp::Networking.PackageGeneratorDescriptor
-  _type: 2
+  _type: 1
   _flags: 0
   _pathFromCore: Scripts/Networking/Packages
   _descriptors:
-  - Name: Test
-    IsArray: 1
+  - Name: ID
+    IsArray: 0
     CustomStructTypeName: 
-    DefaultType: 4
+    DefaultType: 1

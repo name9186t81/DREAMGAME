@@ -7,6 +7,7 @@ namespace Networking
         Combined,
         ConnectionRequest,
         ConnectionResponse,
+        Test,
         Invalid
     }
 }

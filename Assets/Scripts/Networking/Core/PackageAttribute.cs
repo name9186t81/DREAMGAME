@@ -2,15 +2,16 @@ using System;
 
 namespace Networking
 {
-    public sealed class PackageAttribute : Attribute
+    [AttributeUsage(AttributeTargets.Struct | AttributeTargets.Class, AllowMultiple = false)]
+    public class PackageAttribute : Attribute
     {
         public PackageFlags Flags;
-        public PackageType Type;
+        public PackageType PackageType;
 
-        public PackageAttribute(PackageFlags flags, PackageType type)
+        public PackageAttribute(PackageFlags flags, PackageType packageType)
         {
             Flags = flags;
-            Type = type;
+            PackageType = packageType;
         }
     }
 }
