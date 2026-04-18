@@ -22,5 +22,11 @@ namespace Networking
             ProcessedType = processedType;
             Type = type;
         }
+
+        public ProcessorAttribute(PackageType processedType)
+        {
+            ProcessedType = processedType;
+            Type = ProcessorType.Both;
+        }
     }
 }

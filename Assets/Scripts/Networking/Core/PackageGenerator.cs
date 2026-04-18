@@ -434,6 +434,7 @@ namespace Networking.Utils
                     }
                     TryGetName(i, names, out typeName);
 
+                    upperPart += $"\t\t\t{typeName + "Size"} = (short){typeName}.Length;\n";
                     upperPart += $"\t\t\t{typeName + "Size"}.Convert(data, offset + localOffset);\n";
                     upperPart += $"\t\t\tlocalOffset += sizeof(short);\n";
                     upperPart += $"\t\t\tvar bytes{typeName} = Encoding.Unicode.GetBytes({typeName});\n";

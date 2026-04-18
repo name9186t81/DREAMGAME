@@ -114,6 +114,11 @@ namespace Networking {
                             res = typeof(byte);
                             break;
                         }
+                    case DefaultTypes.String:
+                        {
+                            res = typeof(string);
+                            break;
+                        }
                 }
             }
             else

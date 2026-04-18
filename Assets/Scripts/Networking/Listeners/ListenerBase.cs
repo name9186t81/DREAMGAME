@@ -53,7 +53,7 @@ namespace Networking
         private DebugLevel _level;
         private Socket _listener;
         private short _ackID;
-        private bool _isRunning;
+        private bool _isRunning = true;
 
         private Task _tickLoop;
         private Task[] _workers;
@@ -80,6 +80,8 @@ namespace Networking
         private int _processedPackages;
         private int _receivedPackages;
 
+        private IPEndPoint _ownPoint;
+        public int _ownPort;
         private List<IPEndPoint> _connected = new List<IPEndPoint>();
 
         private const int MTU = 1400;
@@ -87,7 +89,10 @@ namespace Networking
         public ListenerBase(int workerThreads = -1, int listenerThreads = -1, int listeningPort = -1)
         {
             _listener = new Socket(AddressFamily.InterNetwork, SocketType.Dgram, ProtocolType.Udp);
-            _listener.Bind(new IPEndPoint(IPAddress.Any, listeningPort));
+            if (listeningPort == -1) listeningPort = (int)UnityEngine.Mathf.Lerp(2048, 65535, UnityEngine.Random.value);
+            _ownPort = listeningPort;
+            _ownPoint = new IPEndPoint(IPAddress.Any, listeningPort);
+            _listener.Bind(_ownPoint);
             _listener.SetSocketOption(SocketOptionLevel.Socket, SocketOptionName.ReuseAddress, true);
             _listener.SetSocketOption(SocketOptionLevel.IP, SocketOptionName.NoDelay, true);
             _listener.ReceiveBufferSize = 1024 * 1024;
@@ -119,6 +124,7 @@ namespace Networking
             _tickWatch = new Stopwatch();
             _tickWatch.Start();
 
+            DebugMessage("Starting listening on " + _listener.LocalEndPoint, DebugLevel.Low);
             StartWorkerThreads();
             StartListenWorkers();
             _tickLoop = Task.Factory.StartNew(() => TickLoop(_cts.Token), _cts.Token, TaskCreationOptions.LongRunning, TaskScheduler.Default);
@@ -313,6 +319,10 @@ namespace Networking
                             tasks[ind] = _listener.ReceiveFromAsync(buffers[ind], SocketFlags.None, new IPEndPoint(IPAddress.Any, 0));
                         }
                     }
+                    catch (TaskCanceledException ex)
+                    {
+
+                    }
                     catch (Exception e)
                     {
                         DebugMessageError(e.Message, DebugLevel.Low);
@@ -489,6 +499,7 @@ namespace Networking
                 short id = BitConverter.ToInt16(data, NetworkUtils.PackageHeaderSize);
                 if (!_pendingACKs.ContainsKey(id))
                 {
+                    DebugMessage("adding ACK - " + id, DebugLevel.High);
                     _pendingACKs.TryAdd(id, new ACKInfo(data, _watch.ElapsedMilliseconds, point));
                 }
             }
@@ -496,7 +507,7 @@ namespace Networking
             SendAsync(data, point);
         }
 
-        private byte[] SerializePackage(IPackage package)
+        public byte[] SerializePackage(IPackage package)
         {
             int realSize = package.DataSize + (package.NeedACK ? sizeof(short) : 0) + NetworkUtils.PackageHeaderSize;
             byte[] buffer = new byte[realSize];
@@ -518,6 +529,19 @@ namespace Networking
             {
                 SendAsync(memory, _connected[i]);
             }
+        }
+
+        public async void SendAsyncWithAck(byte[] memory, IPEndPoint point)
+        {
+            short id = BitConverter.ToInt16(memory, NetworkUtils.PackageHeaderSize);
+            if (!_pendingACKs.ContainsKey(id))
+            {
+                DebugMessage("adding ACK - " + id, DebugLevel.High);
+                _pendingACKs.TryAdd(id, new ACKInfo(memory, _watch.ElapsedMilliseconds, point));
+            }
+
+            DebugMessage("sending[WITH ACK] - " + memory.Length + " bytes to " + point, DebugLevel.High);
+            await _listener.SendToAsync(memory, SocketFlags.None, point);
         }
 
         public async void SendAsync(byte[] memory, IPEndPoint point)
@@ -570,11 +594,18 @@ namespace Networking
             _isRunning = false;
         }
 
+        public void SendPackageInstantly(IPackage package, IPEndPoint destination)
+        {
+            SendPackageInternal(SerializePackage(package), destination, package.NeedACK);
+        }
+
         public void SendPackageNextTick(IPackage package, IPEndPoint destination)
         {
             _pendingTickPackages.Add((package, destination));
         }
 
+        public int OwnPort => _ownPort;
+        public IPEndPoint OwnPoint => _ownPoint;
         public CancellationTokenSource CTS => _cts;
         private short ACKID => _ackID++;
     }

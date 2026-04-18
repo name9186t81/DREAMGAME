@@ -1,4 +1,5 @@
-﻿using System;
+﻿using Networking.Packages;
+using System;
 using System.Collections.Concurrent;
 using System.Collections.Generic;
 using System.Net;
@@ -106,6 +107,12 @@ namespace Networking
         }
 
         public bool TryGetObjectOwner(int objectID, out byte userID) => _objectOwners.TryGetValue(objectID, out userID);
+
+        public void SendTestMessage(string testMessage, IPEndPoint point)
+        {
+            TestPackage package = new TestPackage(testMessage);
+            SendPackageInstantly(package, point);
+        }
 
         public IEnumerable<KeyValuePair<int, byte>> AllNetworkObjects => _objectOwners;
         public IEnumerable<KeyValuePair<IPEndPoint, byte>> ConnectedUsers => _userIDs;
