@@ -27,12 +27,12 @@ namespace Networking.Testing
             if (_sendToServer)
             {
                 _sendToServer = false;
-                _client.SendTestMessage(_message, new IPEndPoint(IPAddress.Parse("26.74.175.115"), _serverPort));
+                _client.SendTestMessage(_message, new IPEndPoint(IPAddress.Parse("127.0.0.1"), _serverPort));
             }
             if (_sendToClient)
             {
                 _sendToClient = false;
-                _server.SendTestMessage(_message, new IPEndPoint(IPAddress.Parse("26.74.175.115"), _client.OwnPort));
+                _server.SendTestMessage(_message, new IPEndPoint(IPAddress.Parse("127.0.0.1"), _client.OwnPort));
             }
         }
     }
