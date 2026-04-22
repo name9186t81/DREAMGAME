@@ -20,6 +20,24 @@ public static class DebugUtils
         Debug.DrawLine(end, p2, color, duration);
     }
 
+    public static void DebugDrawArrow(Vector3 start, Vector3 end, Color color = default, float duration = 0)
+    {
+        ValidateDefaultValues(ref color, ref duration);
+
+        Debug.DrawLine(start, end, color, duration);
+
+        Vector3 center = (end - start) / 2;
+        Vector3 dir = (end - start);
+        float length = dir.magnitude;
+        dir /= length;
+        Vector3 perp = new Vector2(-dir.y, dir.x);
+
+        Vector3 p1 = start + center + perp * length / 4;
+        Vector3 p2 = start + center - perp * length / 4;
+        Debug.DrawLine(end, p1, color, duration);
+        Debug.DrawLine(end, p2, color, duration);
+    }
+
     public static void DebugDrawCircle(Vector2 center, float radius, Color color = default, float duration = 0)
     {
         ValidateDefaultValues(ref color, ref duration);

@@ -9,15 +9,30 @@ public class PlayerMovement : MonoBehaviour
         Rising,
         Falling
     }
+    [Header("Shape settings")]
+    [SerializeField] private float _radius = 1f;
+    [SerializeField] private float _height = 2f;
+    [SerializeField] private float _skinThickness = 0.02f;
+    [SerializeField] private LayerMask _collisions = ~0;
+
+    [Header("Rotation")]
+    [SerializeField] private float _sensetivity = 1f;
+    [SerializeField] private Transform _camera;
+    public float _rotationX;
+    public float _rotationY;
+
     [Header("Movement")]
     [SerializeField] private float _maxWalkSpeed;
-    [SerializeField] private float _accelerationSpeed;
+    [SerializeField] private float _maxSpeedReachTime;
+    private Vector2 _walkDirection;
+    private Vector3 _moveForce;
 
     [Header("Gravity")]
     [SerializeField] private float _gravityStrength;
     [SerializeField] private float _maxGravityStrength;
     [SerializeField, Range(0, 1f)] private float _groundedThreshold = 0.9f;
     private Vector3 _gravityForce;
+    private int _stepsSinceGrounded;
     public event Action<ContactPoint> OnLanding;
     public event Action OnBecomingAirborn;
 
@@ -37,6 +52,7 @@ public class PlayerMovement : MonoBehaviour
     private bool _wantToJump;
 
     private Vector3 _groundDirection;
+    private Vector3 _groundNormal;
     private bool _wasGrounded;
     private bool _isGrounded;
 
@@ -44,7 +60,7 @@ public class PlayerMovement : MonoBehaviour
 
     private void Awake()
     {
-        _initialJumpVector = _groundDirection = Vector3.up;
+        _groundNormal = _initialJumpVector = _groundDirection = Vector3.up;
         _rigidbody = GetComponent<Rigidbody>();
         _rigidbody.sleepThreshold = 0;
         _rigidbody.useGravity = false;
@@ -59,6 +75,33 @@ public class PlayerMovement : MonoBehaviour
         {
             _wantToJump = true;
         }
+
+        _walkDirection = Vector2.zero;
+        if (Input.GetKey(KeyCode.W))
+        {
+            _walkDirection += Vector2.up;
+        }
+        if (Input.GetKey(KeyCode.S))
+        {
+            _walkDirection -= Vector2.up;
+        }
+        if (Input.GetKey(KeyCode.D))
+        {
+            _walkDirection += Vector2.right;
+        }
+        if (Input.GetKey(KeyCode.A))
+        {
+            _walkDirection -= Vector2.right;
+        }
+
+        float rotationX = Input.GetAxis("Mouse X") * _sensetivity;
+        float rotationY = Input.GetAxis("Mouse Y") * _sensetivity;
+        _rotationY += rotationY;
+        _rotationX += rotationX;
+
+        _rotationY = Mathf.Clamp(_rotationY, -90, 90);
+        _camera.transform.localRotation = Quaternion.Euler(-_rotationY, 0, 0);
+        transform.rotation = Quaternion.Euler(0, _rotationX, 0);
     }
 
     private void FixedUpdate()
@@ -70,7 +113,7 @@ public class PlayerMovement : MonoBehaviour
             _jumpElapsed = 0f;
         }
 
-        _rigidbody.linearVelocity = ComputeGravity() + ComputeJump();
+        _rigidbody.linearVelocity = ComputeGravity() + ComputeJump() + ComputeWalking();
 
         if(_wasGrounded && _isGrounded)
         {
@@ -78,6 +121,19 @@ public class PlayerMovement : MonoBehaviour
         }
         _wasGrounded = _isGrounded;
         _isGrounded = false;
+    }
+
+    private Vector3 ComputeWalking()
+    {
+        Vector3 direction = Quaternion.FromToRotation(_groundDirection, _groundNormal) * (transform.forward * _walkDirection.y + transform.right * _walkDirection.x);
+        if(RaycastUtils.Raycast(transform.position, direction, transform.IgnoreSelf(), out var hit, _radius + _skinThickness, _collisions))
+        {
+            direction = Vector3.zero;
+        }
+
+        Vector3 desiredWalkForce = Vector3.MoveTowards(_moveForce, direction * _maxWalkSpeed, _maxSpeedReachTime < Mathf.Epsilon ? float.MaxValue : _maxWalkSpeed / _maxSpeedReachTime);
+        _moveForce = desiredWalkForce;
+        return _moveForce;
     }
 
     private Vector3 ComputeJump()
@@ -169,14 +225,27 @@ public class PlayerMovement : MonoBehaviour
     {
         bool isGrounded = false;
 
-        for (int i = 0; i < collision.contactCount && !isGrounded; i++)
+        for (int i = 0; i < collision.contactCount; i++)
         {
-            isGrounded |= Vector3.Dot(_groundDirection, collision.GetContact(i).normal) > _groundedThreshold;
+            float dot = Vector3.Dot(_groundDirection, collision.GetContact(i).normal);
+            isGrounded |= dot > _groundedThreshold;
+            if(isGrounded)
+                _groundNormal = collision.GetContact(i).normal;
+            DebugUtils.DebugDrawArrow(collision.GetContact(i).point, collision.GetContact(i).point + collision.GetContact(i).normal, Color.blue, 0.1f);
         }
 
         _isGrounded = isGrounded;
     }
 
+    private void OnDrawGizmos()
+    {
+        Gizmos.DrawWireSphere(transform.position + Vector3.up * _height * 0.5f, _radius);
+        Gizmos.DrawWireSphere(transform.position - Vector3.up * _height * 0.5f, _radius);
+
+        Gizmos.color = Color.cyan;
+        Gizmos.DrawWireSphere(transform.position + Vector3.up * _height * 0.5f, _radius + _skinThickness);
+        Gizmos.DrawWireSphere(transform.position - Vector3.up * _height * 0.5f, _radius + _skinThickness);
+    }
     private float ComputeIntegral(AnimationCurve curve)
     {
         float delta = 1 / 100f;
