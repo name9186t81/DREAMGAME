@@ -27,6 +27,19 @@ public class PlayerMovement : MonoBehaviour
     private Vector2 _walkDirection;
     private Vector3 _moveForce;
 
+    [Header("Slide")]
+    [SerializeField] private AnimationCurve _slideFalloff;
+    [SerializeField] private float _slideDistance;
+    [SerializeField] private float _slideTime;
+    [SerializeField] private float _slideMaxDirectionChangeTime;
+    [SerializeField] private bool _ignoreSnapping;
+    public event Action OnSlideStart;
+    private bool _isSliding;
+    private bool _wantToSlide;
+    private Vector2 _slideDirection;
+    private float _slidingElapsed;
+    private float _slidingIntegral;
+
     [Header("Gravity")]
     [SerializeField] private float _maxGravityReachTime;
     [SerializeField] private float _maxGravityStrength;
@@ -68,6 +81,7 @@ public class PlayerMovement : MonoBehaviour
 
         _jumpApex = FindApex(_jumpCurve);
         _jumpIntegral = ComputeIntegral(_jumpCurve);
+        _slidingIntegral = ComputeIntegral(_slideFalloff);
     }
 
     private void Update()
@@ -95,6 +109,11 @@ public class PlayerMovement : MonoBehaviour
             _walkDirection -= Vector2.right;
         }
 
+        if (Input.GetKey(KeyCode.C) && !_isSliding)
+        {
+            _wantToSlide = true;
+        }
+
         float rotationX = Input.GetAxis("Mouse X") * _sensetivity;
         float rotationY = Input.GetAxis("Mouse Y") * _sensetivity;
         _rotationY += rotationY;
@@ -114,7 +133,13 @@ public class PlayerMovement : MonoBehaviour
             _jumpElapsed = 0f;
         }
 
-        _rigidbody.linearVelocity = ComputeGravity() + ComputeJump() + ComputeWalking();
+        if (_wantToSlide && _isGrounded && !_isSliding)
+        {
+            _isSliding = true;
+            _wantToSlide = false;
+        }
+
+        _rigidbody.linearVelocity = ComputeGravity() + ComputeJump() + ComputeWalking() + ComputeSliding();
 
         if (_isGrounded) _stepsSinceGrounded = 0;
         else _stepsSinceGrounded++;
@@ -131,7 +156,7 @@ public class PlayerMovement : MonoBehaviour
 
     private void TryToSnap()
     {
-        if (_isGrounded || _isJumping || _stepsSinceGrounded != 2) return;
+        if (_isGrounded || _isJumping || _stepsSinceGrounded != 2 || (_ignoreSnapping && _isSliding)) return;
 
         Vector3 expectedPosition = _lastGroundPosition + _rigidbody.linearVelocity;
         if(RaycastUtils.Raycast(transform.position, -_groundDirection, transform.IgnoreSelf(), out var res, 999999, _collisions))
@@ -145,6 +170,28 @@ public class PlayerMovement : MonoBehaviour
             _groundNormal = res.normal;
             Debug.Log("AfterSnapped - " + _rigidbody.linearVelocity);
         }
+    }
+
+    #region forces computation
+    private Vector3 ComputeSliding()
+    {
+        if(!_isSliding) return Vector3.zero;
+
+        _slidingElapsed += Time.fixedDeltaTime;
+        float delta = _slidingElapsed / _slideTime;
+
+        if(delta > 1)
+        {
+            _isSliding = false;
+            _slidingElapsed = 0;
+            return Vector3.zero;
+        }
+
+        float angle = Mathf.MoveTowardsAngle(Mathf.Atan2(_slideDirection.y, _slideDirection.x) * Mathf.Rad2Deg, Mathf.Atan2(_walkDirection.y, _walkDirection.x) * Mathf.Rad2Deg, Time.fixedDeltaTime * 2 * _slideMaxDirectionChangeTime) * Mathf.Deg2Rad;
+        _slideDirection = new Vector2(Mathf.Cos(angle), Mathf.Sin(angle));
+
+        Vector3 projection = Quaternion.FromToRotation(_groundDirection, _groundNormal) * (_slideDirection.y * transform.forward + transform.right * _slideDirection.x);
+        return projection * _slideFalloff.Evaluate(delta) * _slideDistance / _slideTime / _slidingIntegral;
     }
 
     private Vector3 ComputeWalking()
@@ -219,6 +266,7 @@ public class PlayerMovement : MonoBehaviour
             return Vector3.zero;
         }
     }
+    #endregion
 
     private void OnCollisionEnter(Collision collision)
     {
@@ -270,6 +318,8 @@ public class PlayerMovement : MonoBehaviour
         Gizmos.DrawWireSphere(transform.position + Vector3.up * _height * 0.5f, _radius + _skinThickness);
         Gizmos.DrawWireSphere(transform.position - Vector3.up * _height * 0.5f, _radius + _skinThickness);
     }
+
+    //todo move into math utils
     private float ComputeIntegral(AnimationCurve curve)
     {
         float delta = 1 / 100f;
@@ -287,6 +337,7 @@ public class PlayerMovement : MonoBehaviour
         return res;
     }
 
+    //todo move into math utils
     private float FindApex(AnimationCurve curve)
     {
         float delta = 1 / 100f;
