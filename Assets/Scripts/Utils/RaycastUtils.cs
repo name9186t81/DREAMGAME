@@ -42,4 +42,25 @@ public static class RaycastUtils
         result = default;
         return false;
     }
+
+    public static bool Linecast(Vector3 origin, Vector3 point, Func<RaycastHit, bool> filter, out RaycastHit result, int mask = ~0)
+    {
+        Vector3 direction = point - origin;
+        float distance = direction.magnitude;
+        direction /= distance;
+
+        var linecast = Physics.RaycastNonAlloc(origin, direction, _internalCache, distance, mask);
+
+        for (int i = 0; i < linecast; i++)
+        {
+            if (filter(_internalCache[i]))
+            {
+                result = _internalCache[i];
+                return true;
+            }
+        }
+
+        result = default;
+        return false;
+    }
 }

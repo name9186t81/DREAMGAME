@@ -28,7 +28,7 @@ public class PlayerMovement : MonoBehaviour
     private Vector3 _moveForce;
 
     [Header("Gravity")]
-    [SerializeField] private float _gravityStrength;
+    [SerializeField] private float _maxGravityReachTime;
     [SerializeField] private float _maxGravityStrength;
     [SerializeField, Range(0, 1f)] private float _groundedThreshold = 0.9f;
     private Vector3 _gravityForce;
@@ -51,8 +51,9 @@ public class PlayerMovement : MonoBehaviour
     private bool _isJumping;
     private bool _wantToJump;
 
-    private Vector3 _groundDirection;
+    private Vector3 _groundDirection; //acts as -gravity vector
     private Vector3 _groundNormal;
+    private Vector3 _lastGroundPosition;
     private bool _wasGrounded;
     private bool _isGrounded;
 
@@ -106,7 +107,7 @@ public class PlayerMovement : MonoBehaviour
 
     private void FixedUpdate()
     {
-        if (_wantToJump)
+        if (_wantToJump && _isGrounded)
         {
             _wantToJump = false;
             _isJumping = true;
@@ -114,6 +115,11 @@ public class PlayerMovement : MonoBehaviour
         }
 
         _rigidbody.linearVelocity = ComputeGravity() + ComputeJump() + ComputeWalking();
+
+        if (_isGrounded) _stepsSinceGrounded = 0;
+        else _stepsSinceGrounded++;
+
+        TryToSnap();
 
         if(_wasGrounded && _isGrounded)
         {
@@ -123,13 +129,27 @@ public class PlayerMovement : MonoBehaviour
         _isGrounded = false;
     }
 
+    private void TryToSnap()
+    {
+        if (_isGrounded || _isJumping || _stepsSinceGrounded != 2) return;
+
+        Vector3 expectedPosition = _lastGroundPosition + _rigidbody.linearVelocity;
+        if(RaycastUtils.Raycast(transform.position, -_groundDirection, transform.IgnoreSelf(), out var res, 999999, _collisions))
+        {
+            Debug.Log("Snapped - " + _rigidbody.linearVelocity);
+            //transform.position = res.point + _groundDirection * _height * 0.5f;
+            DebugUtils.DebugDrawArrow(res.point, res.point + res.normal, Color.red, 2f);
+
+            float mag = _rigidbody.linearVelocity.magnitude;
+            _rigidbody.linearVelocity = (_rigidbody.linearVelocity - res.normal * Vector3.Dot(res.normal, _rigidbody.linearVelocity)).normalized * mag;
+            _groundNormal = res.normal;
+            Debug.Log("AfterSnapped - " + _rigidbody.linearVelocity);
+        }
+    }
+
     private Vector3 ComputeWalking()
     {
         Vector3 direction = Quaternion.FromToRotation(_groundDirection, _groundNormal) * (transform.forward * _walkDirection.y + transform.right * _walkDirection.x);
-        if(RaycastUtils.Raycast(transform.position, direction, transform.IgnoreSelf(), out var hit, _radius + _skinThickness, _collisions))
-        {
-            direction = Vector3.zero;
-        }
 
         Vector3 desiredWalkForce = Vector3.MoveTowards(_moveForce, direction * _maxWalkSpeed, _maxSpeedReachTime < Mathf.Epsilon ? float.MaxValue : _maxWalkSpeed / _maxSpeedReachTime);
         _moveForce = desiredWalkForce;
@@ -184,7 +204,8 @@ public class PlayerMovement : MonoBehaviour
     {
         if (!(_isGrounded || _isJumping))
         {
-            _gravityForce -= _groundDirection * _gravityStrength;
+            float mag = _gravityForce.sqrMagnitude;
+            _gravityForce -= _groundDirection * Mathf.MoveTowards(mag, _maxGravityStrength * _maxGravityStrength, Time.fixedDeltaTime * _maxGravityStrength / _maxGravityReachTime);
             if(_gravityForce.sqrMagnitude > _maxGravityStrength * _maxGravityStrength)
             {
                 _gravityForce = _gravityForce.normalized * _maxGravityStrength;
@@ -229,8 +250,11 @@ public class PlayerMovement : MonoBehaviour
         {
             float dot = Vector3.Dot(_groundDirection, collision.GetContact(i).normal);
             isGrounded |= dot > _groundedThreshold;
-            if(isGrounded)
+            if (isGrounded)
+            {
                 _groundNormal = collision.GetContact(i).normal;
+                _lastGroundPosition = collision.GetContact(i).point;
+            }
             DebugUtils.DebugDrawArrow(collision.GetContact(i).point, collision.GetContact(i).point + collision.GetContact(i).normal, Color.blue, 0.1f);
         }
 

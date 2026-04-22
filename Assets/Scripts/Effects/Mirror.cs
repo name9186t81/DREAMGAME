@@ -11,22 +11,14 @@ public class Mirror : MonoBehaviour
     [SerializeField] private float _farClip = 1000;
     [SerializeField] private float _quality = 1;
     [SerializeField] private int _mirrorID;
+    [SerializeField] private bool _runInEditor = true;
+    [SerializeField] private bool _isPortal = false;
+    [SerializeField] private bool _inverseLookDirectionWhenNotLooking = true;
 
     private static Dictionary<int, Mirror> _activeMirrors = new Dictionary<int, Mirror>();
     private bool _wasAdded;
     private RenderTexture _rt;
-    private Material _mat;
     private Camera _probe;
-
-    private void Start()
-    {
-        if (_probe == null)
-            CreateProbe();
-        CreateRenderTexture(Camera.main);
-
-        _mat = new Material(Shader.Find("Unlit/Texture"));
-        _mat.mainTexture = _rt;
-    }
 
     private void OnEnable()
     {
@@ -57,6 +49,8 @@ public class Mirror : MonoBehaviour
     private void PreRender(ScriptableRenderContext src, Camera cam)
     {
         if (cam.cameraType == CameraType.Reflection) return;
+        if (!_runInEditor && cam.cameraType == CameraType.SceneView) return;
+
         if (_probe == null) CreateProbe();
 
         Vector3 normal = transform.forward;
@@ -108,8 +102,6 @@ public class Mirror : MonoBehaviour
             _probe.targetTexture = new RenderTexture(width, height, 24);
             _probe.targetTexture.Create();
             _rt = _probe.targetTexture;
-            if(_mat)
-                _mat.mainTexture = _rt;
         }
         else
         {
@@ -123,13 +115,15 @@ public class Mirror : MonoBehaviour
             normal, cam.transform.position - transform.position);
         _probe.transform.position = cam.transform.position - 2 * proj;
 
-        Vector3 probeForward = Vector3.Reflect(cam.transform.forward, normal);
+        Vector3 probeForward = _isPortal ? -Vector3.Reflect(cam.transform.forward, normal) : Vector3.Reflect(cam.transform.forward, normal);
         Vector3 probeUp = Vector3.Reflect(cam.transform.up, normal);
         _probe.transform.LookAt(_probe.transform.position + probeForward, probeUp);
     }
 
     private void CalculateObliqueProjection(Vector3 normal)
     {
+        if (_isPortal) return;
+
         Matrix4x4 viewMatrix = _probe.worldToCameraMatrix;
         Vector3 viewPosition = viewMatrix.MultiplyPoint(transform.position);
         Vector3 viewNormal = viewMatrix.MultiplyVector(normal);
