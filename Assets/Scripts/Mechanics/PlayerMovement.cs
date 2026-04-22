@@ -137,6 +137,8 @@ public class PlayerMovement : MonoBehaviour
         {
             _isSliding = true;
             _wantToSlide = false;
+
+            _slideDirection = _walkDirection;
         }
 
         _rigidbody.linearVelocity = ComputeGravity() + ComputeJump() + ComputeWalking() + ComputeSliding();
@@ -232,7 +234,7 @@ public class PlayerMovement : MonoBehaviour
 
         if (delta > 1 || _isGrounded && delta > 0.2f || Mathf.Abs(curveMoment - curveMomentNext) < 0.01f && delta > 0.9f)
         {
-            _gravityForce = Vector3.Dot(_jumpForce.normalized, _gravityForce.normalized) > 0 ? _jumpForce : Vector2.zero;
+            _gravityForce = delta > _jumpApex ? _jumpForce : Vector3.zero;
             _jumpForce = Vector3.zero;
             _isJumping = false;
 
@@ -262,7 +264,8 @@ public class PlayerMovement : MonoBehaviour
         }
         else
         {
-            _gravityForce = Vector3.zero;
+            if(_wasGrounded)
+                _gravityForce = Vector3.zero;
             return Vector3.zero;
         }
     }
