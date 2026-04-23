@@ -22,6 +22,7 @@ public class PlayerMovement : MonoBehaviour
     public float _rotationY;
 
     [Header("Movement")]
+    [SerializeField, Range(0, 1f)] private float _airResistanceFactor;
     [SerializeField] private float _maxWalkSpeed;
     [SerializeField] private float _maxSpeedReachTime;
     private Vector2 _walkDirection;
@@ -61,6 +62,7 @@ public class PlayerMovement : MonoBehaviour
     private float _jumpApex;
     private float _jumpIntegral;
     private float _jumpElapsed;
+    private bool _slideJump;
     private bool _isJumping;
     private bool _wantToJump;
 
@@ -130,6 +132,7 @@ public class PlayerMovement : MonoBehaviour
         {
             _wantToJump = false;
             _isJumping = true;
+            _slideJump = _isSliding;
             _jumpElapsed = 0f;
         }
 
@@ -139,6 +142,7 @@ public class PlayerMovement : MonoBehaviour
             _wantToSlide = false;
 
             _slideDirection = _walkDirection;
+            _moveForce = Quaternion.FromToRotation(_groundDirection, _groundNormal) * (transform.forward * _walkDirection.y + transform.right * _walkDirection.x) * _maxWalkSpeed;
         }
 
         _rigidbody.linearVelocity = ComputeGravity() + ComputeJump() + ComputeWalking() + ComputeSliding();
@@ -179,7 +183,8 @@ public class PlayerMovement : MonoBehaviour
     {
         if(!_isSliding) return Vector3.zero;
 
-        _slidingElapsed += Time.fixedDeltaTime;
+        if(_isGrounded)
+            _slidingElapsed += Time.fixedDeltaTime;
         float delta = _slidingElapsed / _slideTime;
 
         if(delta > 1)
@@ -200,7 +205,7 @@ public class PlayerMovement : MonoBehaviour
     {
         Vector3 direction = Quaternion.FromToRotation(_groundDirection, _groundNormal) * (transform.forward * _walkDirection.y + transform.right * _walkDirection.x);
 
-        Vector3 desiredWalkForce = Vector3.MoveTowards(_moveForce, direction * _maxWalkSpeed, _maxSpeedReachTime < Mathf.Epsilon ? float.MaxValue : _maxWalkSpeed / _maxSpeedReachTime);
+        Vector3 desiredWalkForce = Vector3.MoveTowards(_moveForce, direction * _maxWalkSpeed, _maxSpeedReachTime < Mathf.Epsilon ? float.MaxValue : _maxWalkSpeed / _maxSpeedReachTime * (_isGrounded ? 1f : _airResistanceFactor));
         _moveForce = desiredWalkForce;
         return _moveForce;
     }
@@ -210,7 +215,8 @@ public class PlayerMovement : MonoBehaviour
         if (!_isJumping) return Vector3.zero;
          
         _jumpElapsed += Time.deltaTime;
-        float delta = _jumpElapsed / _jumpTime;
+        float jumpTime = _slideJump ? _jumpTime * 2 : _jumpTime;
+        float delta = _jumpElapsed / jumpTime;
 
         if(delta < _jumpApex)
         {
@@ -230,7 +236,7 @@ public class PlayerMovement : MonoBehaviour
         }
 
         float curveMoment = _jumpCurve.Evaluate(delta);
-        float curveMomentNext = _jumpCurve.Evaluate((_jumpElapsed + Time.fixedDeltaTime) / _jumpTime);
+        float curveMomentNext = _jumpCurve.Evaluate((_jumpElapsed + Time.fixedDeltaTime) / jumpTime);
 
         if (delta > 1 || _isGrounded && delta > 0.2f || Mathf.Abs(curveMoment - curveMomentNext) < 0.01f && delta > 0.9f)
         {
@@ -244,7 +250,7 @@ public class PlayerMovement : MonoBehaviour
         Vector3 direction = _initialJumpVector;
         float diff = curveMomentNext - curveMoment;
 
-        direction *= (diff) / Time.fixedDeltaTime * _maxJumpHeight;
+        direction *= (diff) / Time.fixedDeltaTime * (_slideJump ? _maxJumpHeight * 2 : _maxJumpHeight);
         _jumpForce = direction;
         return _jumpForce;
     }

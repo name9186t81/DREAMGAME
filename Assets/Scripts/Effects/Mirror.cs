@@ -133,6 +133,11 @@ public class Mirror : MonoBehaviour
         _probe.projectionMatrix = _probe.CalculateObliqueMatrix(plane);
     }
 
+    private void OnDestroy()
+    {
+        RemoveProbeAndPlane();
+    }
+
     private void RemoveProbeAndPlane()
     {
         if(_probe != null)
