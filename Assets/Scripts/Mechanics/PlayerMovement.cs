@@ -109,7 +109,7 @@ public class PlayerMovement : MonoBehaviour
             _walkDirection -= Vector2.right;
         }
 
-        if (Input.GetKey(KeyCode.C) && !_isSliding)
+        if (Input.GetKeyDown(KeyCode.C) && !_isSliding)
         {
             _wantToSlide = true;
         }
@@ -290,7 +290,7 @@ public class PlayerMovement : MonoBehaviour
             OnLanding?.Invoke(point.Value);
         }
 
-        _isGrounded = isGrounded;
+        _isGrounded |= isGrounded;
     }
 
     private void OnCollisionStay(Collision collision)
@@ -309,7 +309,7 @@ public class PlayerMovement : MonoBehaviour
             DebugUtils.DebugDrawArrow(collision.GetContact(i).point, collision.GetContact(i).point + collision.GetContact(i).normal, Color.blue, 0.1f);
         }
 
-        _isGrounded = isGrounded;
+        _isGrounded |= isGrounded;
     }
 
     private void OnDrawGizmos()
