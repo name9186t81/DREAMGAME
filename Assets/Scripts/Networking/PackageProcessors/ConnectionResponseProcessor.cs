@@ -27,6 +27,13 @@ namespace Networking
 
 				receiver.DebugMessage("Assigned ID - " + package.AssignedID, ListenerBase.DebugLevel.Low);
 			}
+
+			var server = receiver as Server;
+			if (server.IsUserConnected(sender))
+			{
+				server.DebugMessageWarning("Received package from unknown IP - " + sender.ToString(), ListenerBase.DebugLevel.Low);
+				return Task.FromResult(false);
+            }
 			return Task.FromResult(true);
 		}
 	}

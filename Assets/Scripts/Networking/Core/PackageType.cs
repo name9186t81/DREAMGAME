@@ -8,6 +8,10 @@ namespace Networking
         ConnectionRequest,
         ConnectionResponse,
         Test,
+        TextMessage,
+        ClientShutdown,
+        ClientShutdownNotification,
+        ServerShutdown,
         Invalid
     }
 }

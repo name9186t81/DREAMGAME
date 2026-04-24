@@ -21,6 +21,7 @@ namespace Networking.Utils
         [SerializeField] private PackageType _type;
         [SerializeField] private Permission _permission;
         [SerializeField] private bool _separateClientAndServerMethods;
+        [SerializeField] private bool _serverConnectionValidation;
 
         public void Generate()
         {
@@ -70,7 +71,7 @@ namespace Networking.Utils
         private string GenerateHeader()
         {
             string res = string.Empty;
-            res = $"//the following code was partly auto-generated\nusing Networking.Packages;\nusing System;\nusing System.Net;\nusing System.Threading;\nusing System.Threading.Tasks;\n\nnamespace Networking\n{{\n\t[Processor(PackageType.{_type.ToString()})]\n\tpublic sealed class {_type.ToString()}Processor : IPackageProcessor\n\t{{\n";
+            res = $"//the following code was partly auto-generated\nusing Networking.Packages;\nusing System;\nusing System.Net;\nusing System.Threading;\nusing System.Threading.Tasks;\n\nnamespace Networking\n{{\n\t[Processor(PackageType.{_type.ToString()}{(_permission == Permission.Both ? "" : _permission == Permission.Server ? "ProcessorAttribute.ProcessorType.Server" : "ProcessorAttribute.ProcessorType.Client")})]\n\tpublic sealed class {_type.ToString()}Processor : IPackageProcessor\n\t{{\n";
             return res;
         }
 
@@ -93,6 +94,12 @@ namespace Networking.Utils
             }
             else
             {
+                if (_serverConnectionValidation && _permission != Permission.Client)
+                {
+                    s += "\t\t\tif (receiver is Server server && !server.IsUserConnected(sender))\n\t\t\t{\n";
+                    s += "\t\t\t\tserver.DebugMessageWarning(\"Received package from unknown IP - \" + sender.ToString(), ListenerBase.DebugLevel.Low);\n";
+                    s += "\t\t\t\treturn Task.FromResult(false);\n\t\t\t}\n";
+                }
                 s += "\t\t\treturn Task.FromResult(true);\n";
                 s += "\t\t}\n";
             }
@@ -104,6 +111,12 @@ namespace Networking.Utils
         {
             s += "\n";
             s += $"\t\tprivate void SolveFor{(isServer ? "Server" : "Client")}({type.Name} package, CancellationTokenSource cts, IPEndPoint sender, {(isServer ? "Server server" : "Client client")})\n\t\t{{";
+            if(_serverConnectionValidation && isServer)
+            {
+                s += "\t\t\tif (!server.IsUserConnected(sender))\n\t\t\t{\n";
+                s += "\t\t\t\tserver.DebugMessageWarning(\"Received package from unknown IP - \" + sender.ToString(), ListenerBase.DebugLevel.Low);\n";
+                s += "\t\t\t\treturn;\n\t\t\t}\n";
+            }
             s += "\t\t\t\n";
             s += "\t\t}\n";
             return s;
