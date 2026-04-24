@@ -488,6 +488,10 @@ namespace Networking
                     }
                 }
             }
+            else
+            {
+                DebugMessageError("No processor found for " + header.ToString(), DebugLevel.Low);
+            }
         }
 
         protected abstract bool Process(PackageType type, in ReadOnlySpan<byte> memory, IPEndPoint sender);
@@ -588,7 +592,7 @@ namespace Networking
 
         public void Kill()
         {
-            DebugMessage("TERMINATING LISTER", DebugLevel.None);
+            DebugMessage("TERMINATING LISTENER", DebugLevel.None);
             _cts.Cancel();
 
             _isRunning = false;

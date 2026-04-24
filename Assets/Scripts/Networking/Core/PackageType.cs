@@ -1,6 +1,6 @@
 namespace Networking
 {
-    public enum PackageType
+    public enum PackageType : byte
     {
         Unknown = 0,
         Ack,

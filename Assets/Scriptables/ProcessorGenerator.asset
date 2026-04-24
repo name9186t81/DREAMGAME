@@ -12,7 +12,7 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 96e80a05987236f4ab75fe531f8a480a, type: 3}
   m_Name: ProcessorGenerator
   m_EditorClassIdentifier: Assembly-CSharp::Networking.Utils.PackageProcessorGenerator
-  _filePath: 
-  _type: 0
+  _filePath: Scripts/Networking/PackageProcessors
+  _type: 3
   _permission: 0
   _separateClientAndServerMethods: 0

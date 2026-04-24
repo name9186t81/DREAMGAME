@@ -7,7 +7,7 @@ using System.Threading.Tasks;
 
 namespace Networking
 {
-	[Processor(PackageType.Test)]
+	[Processor(PackageType.ConnectionRequest)]
 	public sealed class ConnectionRequestProcessor : IPackageProcessor
 	{
 		public Task<bool> Process(ReadOnlySpan<byte> data, CancellationTokenSource cts, IPEndPoint sender, ListenerBase receiver)

@@ -1,5 +1,6 @@
 ﻿using UnityEngine;
 using System.Net;
+using Networking.Packages;
 
 namespace Networking.Testing
 {
@@ -20,6 +21,8 @@ namespace Networking.Testing
 
             _server.ChangeDebugLevel(ListenerBase.DebugLevel.High);
             _client.ChangeDebugLevel(ListenerBase.DebugLevel.High);
+
+            _client.SendPackageNextTick(new ConnectionRequestPackage(), new IPEndPoint(IPAddress.Parse("127.0.0.1"), _serverPort));
         }
 
         private void Update()

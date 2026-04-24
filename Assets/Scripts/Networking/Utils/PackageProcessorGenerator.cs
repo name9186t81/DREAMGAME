@@ -70,7 +70,7 @@ namespace Networking.Utils
         private string GenerateHeader()
         {
             string res = string.Empty;
-            res = $"//the following code was partly auto-generated\nusing Networking.Packages;\nusing System;\nusing System.Net;\nusing System.Threading;\nusing System.Threading.Tasks;\n\nnamespace Networking\n{{\n\t[Processor(PackageType.Test)]\n\tpublic sealed class {_type.ToString()}Processor : IPackageProcessor\n\t{{\n";
+            res = $"//the following code was partly auto-generated\nusing Networking.Packages;\nusing System;\nusing System.Net;\nusing System.Threading;\nusing System.Threading.Tasks;\n\nnamespace Networking\n{{\n\t[Processor(PackageType.{_type.ToString()})]\n\tpublic sealed class {_type.ToString()}Processor : IPackageProcessor\n\t{{\n";
             return res;
         }
 
