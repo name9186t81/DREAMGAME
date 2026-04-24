@@ -168,90 +168,93 @@ namespace Networking.Utils
             upperPart += "\n";
 
             upperPart += $"\t\tpublic {className}()" + "{}\n";
-            upperPart += $"\t\tpublic {className}(";
-            usedNames = new Dictionary<Type, int>();
-            for (int i = 0; i < data.Length; i++)
+            if (data.Length > 0)
             {
-                string varName = data[i].FullName + "Gen";
-                var type = data[i];
-                if (data[i].IsArray)
+                upperPart += $"\t\tpublic {className}(";
+                usedNames = new Dictionary<Type, int>();
+                for (int i = 0; i < data.Length; i++)
                 {
-                    varName = data[i].GetElementType() + "arrayGen";
-                    type = typeof(Array);
-                }
+                    string varName = data[i].FullName + "Gen";
+                    var type = data[i];
+                    if (data[i].IsArray)
+                    {
+                        varName = data[i].GetElementType() + "arrayGen";
+                        type = typeof(Array);
+                    }
 
-                if (usedNames.TryGetValue(type, out int num))
-                {
-                    varName += num.ToString();
-                    usedNames[type]++;
-                }
-                else
-                {
-                    usedNames.Add(type, 1);
-                }
-                var splitted = varName.Split('.');
-                string last = char.ToLower(splitted[splitted.Length - 1][0]) + splitted[splitted.Length - 1].Substring(1);
-                string res = "";
-                for (int j = 0; j < splitted.Length - 1; ++j)
-                {
-                    res += splitted[j];
-                }
-                res += last;
-                varName = res;
+                    if (usedNames.TryGetValue(type, out int num))
+                    {
+                        varName += num.ToString();
+                        usedNames[type]++;
+                    }
+                    else
+                    {
+                        usedNames.Add(type, 1);
+                    }
+                    var splitted = varName.Split('.');
+                    string last = char.ToLower(splitted[splitted.Length - 1][0]) + splitted[splitted.Length - 1].Substring(1);
+                    string res = "";
+                    for (int j = 0; j < splitted.Length - 1; ++j)
+                    {
+                        res += splitted[j];
+                    }
+                    res += last;
+                    varName = res;
 
-                if (i > 0)
-                {
-                    upperPart += ", ";
-                }
-                if (TryGetName(i, names, out varName))
-                {
-                    varName = char.ToLower(varName[0]) + varName.Substring(1);
-                }
+                    if (i > 0)
+                    {
+                        upperPart += ", ";
+                    }
+                    if (TryGetName(i, names, out varName))
+                    {
+                        varName = char.ToLower(varName[0]) + varName.Substring(1);
+                    }
 
-                upperPart += data[i].FullName + " " + varName;
+                    upperPart += data[i].FullName + " " + varName;
+                }
+                upperPart += ")\n";
+                upperPart += "\t\t{\n";
+                usedNames = new Dictionary<Type, int>();
+                for (int i = 0; i < data.Length; i++)
+                {
+                    string varName = data[i].FullName + "Gen";
+                    string fullName = data[i].Name + "Gen";
+                    var type = data[i];
+                    if (data[i].IsArray)
+                    {
+                        varName = data[i].GetElementType() + "arrayGen";
+                        fullName = "ArrayGen";
+                        type = typeof(Array);
+                    }
+
+                    if (usedNames.TryGetValue(type, out int num))
+                    {
+                        varName += num.ToString();
+                        fullName += num.ToString();
+                        usedNames[type]++;
+                    }
+                    else
+                    {
+                        usedNames.Add(type, 1);
+                    }
+                    var splitted = varName.Split('.');
+                    string last = char.ToLower(splitted[splitted.Length - 1][0]) + splitted[splitted.Length - 1].Substring(1);
+                    string res = "";
+                    for (int j = 0; j < splitted.Length - 1; ++j)
+                    {
+                        res += splitted[j];
+                    }
+                    res += last;
+                    varName = res;
+
+                    if (TryGetName(i, names, out fullName))
+                    {
+                        varName = char.ToLower(fullName[0]) + fullName.Substring(1);
+                    }
+                    upperPart += $"\t\t\t{fullName} = {varName};\n";
+                }
+                upperPart += "\t\t}\n";
             }
-            upperPart += ")\n";
-            upperPart += "\t\t{\n";
-            usedNames = new Dictionary<Type, int>();
-            for (int i = 0; i < data.Length; i++)
-            {
-                string varName = data[i].FullName + "Gen";
-                string fullName = data[i].Name + "Gen";
-                var type = data[i];
-                if (data[i].IsArray)
-                {
-                    varName = data[i].GetElementType() + "arrayGen";
-                    fullName = "ArrayGen";
-                    type = typeof(Array);
-                }
-
-                if (usedNames.TryGetValue(type, out int num))
-                {
-                    varName += num.ToString();
-                    fullName += num.ToString();
-                    usedNames[type]++;
-                }
-                else
-                {
-                    usedNames.Add(type, 1);
-                }
-                var splitted = varName.Split('.');
-                string last = char.ToLower(splitted[splitted.Length - 1][0]) + splitted[splitted.Length - 1].Substring(1);
-                string res = "";
-                for (int j = 0; j < splitted.Length - 1; ++j)
-                {
-                    res += splitted[j];
-                }
-                res += last;
-                varName = res;
-
-                if (TryGetName(i, names, out fullName))
-                {
-                    varName = char.ToLower(fullName[0]) + fullName.Substring(1);
-                }
-                upperPart += $"\t\t\t{fullName} = {varName};\n";
-            }
-            upperPart += "\t\t}\n";
             usedNames = GenereteSerializeMethod(ref upperPart, data, names);
             usedNames = GenerateDeserializeMethod(ref upperPart, data, names);
             upperPart += "\t}\n";

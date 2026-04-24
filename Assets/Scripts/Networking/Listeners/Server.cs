@@ -114,6 +114,8 @@ namespace Networking
             SendPackageInstantly(package, point);
         }
 
+        public bool IsUserConnected(IPEndPoint point) => _userIDs.ContainsKey(point);
+
         public IEnumerable<KeyValuePair<int, byte>> AllNetworkObjects => _objectOwners;
         public IEnumerable<KeyValuePair<IPEndPoint, byte>> ConnectedUsers => _userIDs;
         public int NetworkObjectID => _networkObjectID++;

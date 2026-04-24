@@ -43,6 +43,16 @@ namespace Networking
             SendPackageInstantly(package, point);
         }
 
+        public void SetServer(IPEndPoint point)
+        {
+            _server = point;
+        }
+
+        public void SetID(byte id)
+        {
+            _id = id;
+        }
+
         public IPEndPoint Server => _server;
         public byte ID => _id;
         public bool IsMasterClient => _isMaster;
