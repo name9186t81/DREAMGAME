@@ -45,6 +45,11 @@ namespace Networking
             return true;
         }
 
+        public void Connect(IPEndPoint server)
+        {
+            SendPackageNextTick(new ConnectionRequestPackage(), server);
+        }
+
         public void SendTestMessage(string testMessage, IPEndPoint point)
         {
             TestPackage package = new TestPackage(testMessage);

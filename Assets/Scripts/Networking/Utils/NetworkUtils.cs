@@ -78,8 +78,8 @@ namespace Networking
         {
             return new Vector3(
                 BitConverter.Int32BitsToSingle(BitConverter.ToInt32(buffer.Slice(offset, sizeof(float)))),
-                BitConverter.Int32BitsToSingle(BitConverter.ToInt32(buffer.Slice(offset + sizeof(float), sizeof(float) * 1))),
-                BitConverter.Int32BitsToSingle(BitConverter.ToInt32(buffer.Slice(offset + sizeof(float) * 2, sizeof(float) * 2))));
+                BitConverter.Int32BitsToSingle(BitConverter.ToInt32(buffer.Slice(offset + sizeof(float)))),
+                BitConverter.Int32BitsToSingle(BitConverter.ToInt32(buffer.Slice(offset + sizeof(float) * 2))));
         }
 
         [MethodImpl(MethodImplOptions.AggressiveInlining)]

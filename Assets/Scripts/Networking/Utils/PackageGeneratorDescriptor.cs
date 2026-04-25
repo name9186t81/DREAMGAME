@@ -1,7 +1,4 @@
-using Networking;
-using Networking.Utils;
 using System;
-using System.Collections;
 using System.Collections.Generic;
 using System.IO;
 using System.Linq;
@@ -9,7 +6,8 @@ using System.Reflection;
 using UnityEditor;
 using UnityEngine;
 
-namespace Networking {
+namespace Networking.Utils {
+#if UNITY_EDITOR
     [CreateAssetMenu(fileName = "PackageGeneratorDescriptor", menuName = "Networking/PackageGeneratorDescriptor")]
     public sealed class PackageGeneratorDescriptor : ScriptableObject
     {
@@ -172,5 +170,6 @@ namespace Networking {
             }
         }
     }
+#endif
 #endif
 }

@@ -4,6 +4,7 @@
 using System;
 using System.Runtime.InteropServices;
 using System.Text;
+using UnityEngine;
 
 namespace Networking.Packages
 {
@@ -43,13 +44,17 @@ namespace Networking.Packages
 		public void Deserialize(ReadOnlySpan<byte> data, int offset)
 		{
 			int localOffset = 0;
+			Debug.Log("OFFSET - " + localOffset);
 			Position = NetworkUtils.GetVector3FromBuffer(data, offset + localOffset);
 			localOffset += sizeof(float) * 3;
-			Rotation = NetworkUtils.GetVector3FromBuffer(data, offset + localOffset);
+            Debug.Log("OFFSET - " + (offset + localOffset));
+            Rotation = NetworkUtils.GetVector3FromBuffer(data, offset + localOffset);
 			localOffset += sizeof(float) * 3;
-			LocalFlags = data[offset + localOffset];
+            Debug.Log("OFFSET - " + localOffset);
+            LocalFlags = data[offset + localOffset];
 			localOffset++;
-			ClientID = data[offset + localOffset];
+            Debug.Log("OFFSET - " + localOffset);
+            ClientID = data[offset + localOffset];
 			localOffset++;
 		}
 	}

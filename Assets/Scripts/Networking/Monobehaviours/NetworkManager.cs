@@ -18,7 +18,7 @@ namespace Networking
         [Header("Testing")]
         [SerializeField] private ActorSyncerDisplayer _debugDisplayer;
         private ConcurrentDictionary<byte, ActorSyncerDisplayer> _idToDisplayer = new ConcurrentDictionary<byte, ActorSyncerDisplayer>();
-        private ConcurrentBag<TestActorSyncPackage> _testPackages;
+        private ConcurrentBag<TestActorSyncPackage> _testPackages = new ConcurrentBag<TestActorSyncPackage>();
 
         private Client _client;
         private Server _server;
@@ -34,6 +34,8 @@ namespace Networking
                 Destroy(gameObject);
                 return;
             }
+
+            _instance = this;
             DontDestroyOnLoad(gameObject);
             gameObject.name = "NETWORK_MANAGER";
         }
@@ -48,10 +50,14 @@ namespace Networking
                 }
                 else
                 {
-                    var obj = Instantiate(actorSyncer);
-                    actorSyncer.AddPackage(package);
+                    var obj = Instantiate(_debugDisplayer);
+                    obj.AddPackage(package);
+                    _idToDisplayer.TryAdd(package.ClientID, obj);
                 }
             }
+
+            _client?.ChangeDebugLevel(_clientDebugLevel);
+            _server?.ChangeDebugLevel(_serverDebugLevel);
         }
         public void CreateServer(int workers, int listeners, int port)
         {

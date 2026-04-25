@@ -20,7 +20,7 @@ namespace Networking
 
         private void SendSync()
         {
-            if (NetworkManager.Instance == null || NetworkManager.Instance.Client == null) return;
+            if (NetworkManager.Instance == null || NetworkManager.Instance.Client == null || NetworkManager.Instance.Client.Server == null) return;
 
             NetworkManager.Instance.Client.SendPackageToServerNextTick(new TestActorSyncPackage(transform.position, transform.eulerAngles, 0, 0));
         }
