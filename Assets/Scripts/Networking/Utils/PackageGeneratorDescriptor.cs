@@ -22,7 +22,9 @@ namespace Networking {
             Double,
             Byte,
             Char,
-            String
+            String,
+            Vector2,
+            Vector3
         }
 
         [Serializable]
@@ -117,6 +119,16 @@ namespace Networking {
                     case DefaultTypes.String:
                         {
                             res = typeof(string);
+                            break;
+                        }
+                    case DefaultTypes.Vector2:
+                        {
+                            res = typeof(Vector2);
+                            break;
+                        }
+                    case DefaultTypes.Vector3:
+                        {
+                            res = typeof(Vector3);
                             break;
                         }
                 }

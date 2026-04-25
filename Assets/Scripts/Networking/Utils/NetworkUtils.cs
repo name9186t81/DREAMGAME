@@ -51,6 +51,38 @@ namespace Networking
         }
 
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
+        public static int SizeOf(this Vector3 vector)
+        {
+            return sizeof(float) * 3;
+        }
+
+        [MethodImpl(MethodImplOptions.AggressiveInlining)]
+        public static void AddVector3ToBuffer(this Vector3 vector, byte[] buffer, int offset)
+        {
+            Convert(BitConverter.SingleToInt32Bits(vector.x), buffer, offset);
+            Convert(BitConverter.SingleToInt32Bits(vector.y), buffer, offset + sizeof(float));
+            Convert(BitConverter.SingleToInt32Bits(vector.z), buffer, offset + sizeof(float) * 2);
+        }
+
+        [MethodImpl(MethodImplOptions.AggressiveInlining)]
+        public static Vector3 GetVector3FromBuffer(byte[] buffer, int offset)
+        {
+            return new Vector3(
+                BitConverter.Int32BitsToSingle(BitConverter.ToInt32(buffer, offset)), 
+                BitConverter.Int32BitsToSingle(BitConverter.ToInt32(buffer, offset + sizeof(float))),
+                BitConverter.Int32BitsToSingle(BitConverter.ToInt32(buffer, offset + sizeof(float) * 2)));
+        }
+
+        [MethodImpl(MethodImplOptions.AggressiveInlining)]
+        public static Vector3 GetVector3FromBuffer(ReadOnlySpan<byte> buffer, int offset)
+        {
+            return new Vector3(
+                BitConverter.Int32BitsToSingle(BitConverter.ToInt32(buffer.Slice(offset, sizeof(float)))),
+                BitConverter.Int32BitsToSingle(BitConverter.ToInt32(buffer.Slice(offset + sizeof(float), sizeof(float) * 1))),
+                BitConverter.Int32BitsToSingle(BitConverter.ToInt32(buffer.Slice(offset + sizeof(float) * 2, sizeof(float) * 2))));
+        }
+
+        [MethodImpl(MethodImplOptions.AggressiveInlining)]
         public static Vector2 GetVector2FromBuffer(byte[] buffer, int offset)
         {
             return new Vector2(BitConverter.Int32BitsToSingle(BitConverter.ToInt32(buffer, offset)), BitConverter.Int32BitsToSingle(BitConverter.ToInt32(buffer, offset + sizeof(float))));

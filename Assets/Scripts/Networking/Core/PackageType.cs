@@ -12,6 +12,7 @@ namespace Networking
         ClientShutdown,
         ClientShutdownNotification,
         ServerShutdown,
+        TestActorSync,
         Invalid
     }
 }

@@ -47,7 +47,7 @@ namespace Networking
 
         public void SendPackageNextTickToEveryoneExcept(IPackage package, IPEndPoint destination)
         {
-            foreach (var connected in ConnectedUsers)
+            foreach (var connected in ConnectedUsers)//todo optimize to send package to everyone without serializing it each time
             {
                 if (!connected.Key.Equals(destination))
                 {

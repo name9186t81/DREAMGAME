@@ -5,6 +5,7 @@ using System.Runtime.InteropServices;
 using System.Security.Cryptography;
 using System.Text;
 using System.Xml.Linq;
+using Unity.VisualScripting;
 using UnityEngine;
 
 namespace Networking.Utils
@@ -366,6 +367,18 @@ namespace Networking.Utils
                     }
                     upperPart += "\t\t\t}\n";
                 }
+                else if (type == typeof(Vector2))
+                {
+                    TryGetName(i, names, out string typeName);
+                    upperPart += $"\t\t\t{typeName} = NetworkUtils.GetVector2FromBuffer(data, offset + localOffset);\n";
+                    upperPart += $"\t\t\tlocalOffset += sizeof(float) * 2;\n";
+                }
+                else if (type == typeof(Vector3))
+                {
+                    TryGetName(i, names, out string typeName);
+                    upperPart += $"\t\t\t{typeName} = NetworkUtils.GetVector3FromBuffer(data, offset + localOffset);\n";
+                    upperPart += $"\t\t\tlocalOffset += sizeof(float) * 3;\n";
+                }
             }
 
             upperPart += "\t\t}\n";
@@ -487,9 +500,22 @@ namespace Networking.Utils
                             upperPart += $"\t\t\t\t\t{typeName}[i].Convert(data, offset + localOffset);\n";
                         }
                         upperPart += $"\t\t\t\t\tlocalOffset += singleSize{typeName};\n";
-                    }//todo add structs support
+                    }
+                    //todo add structs support
                     upperPart += "\t\t\t\t}\n";
                     upperPart += "\t\t\t}\n";
+                }
+                else if (type == typeof(Vector2))
+                {
+                    TryGetName(i, names, out string typeName);
+                    upperPart += $"\t\t\t{typeName}.AddVector2ToBuffer(data, offset + localOffset);\n";
+                    upperPart += $"\t\t\tlocalOffset += sizeof(float) * 2;\n";
+                }
+                else if (type == typeof(Vector3))
+                {
+                    TryGetName(i, names, out string typeName);
+                    upperPart += $"\t\t\t{typeName}.AddVector3ToBuffer(data, offset + localOffset);\n";
+                    upperPart += $"\t\t\tlocalOffset += sizeof(float) * 3;\n";
                 }
             }
             upperPart += "\t\t}\n";

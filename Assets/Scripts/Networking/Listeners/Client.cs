@@ -37,6 +37,14 @@ namespace Networking
             }
         }
 
+        public bool SendPackageToServerNextTick(IPackage package)
+        {
+            if (_server == null) return false;
+
+            SendPackageNextTick(package, _server);
+            return true;
+        }
+
         public void SendTestMessage(string testMessage, IPEndPoint point)
         {
             TestPackage package = new TestPackage(testMessage);

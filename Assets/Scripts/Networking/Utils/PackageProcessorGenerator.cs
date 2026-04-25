@@ -66,6 +66,7 @@ namespace Networking.Utils
                 byte[] buffer = Encoding.Default.GetBytes(s);
                 stream.Write(buffer);
             }
+            AssetDatabase.Refresh();
         }
 
         private string GenerateHeader()
@@ -110,7 +111,7 @@ namespace Networking.Utils
         private string GenerateAdditionalMethod(string s, Type type, bool isServer)
         {
             s += "\n";
-            s += $"\t\tprivate void SolveFor{(isServer ? "Server" : "Client")}({type.Name} package, CancellationTokenSource cts, IPEndPoint sender, {(isServer ? "Server server" : "Client client")})\n\t\t{{";
+            s += $"\t\tprivate void SolveFor{(isServer ? "Server" : "Client")}({type.Name} package, CancellationTokenSource cts, IPEndPoint sender, {(isServer ? "Server server" : "Client client")})\n\t\t{{\n";
             if(_serverConnectionValidation && isServer)
             {
                 s += "\t\t\tif (!server.IsUserConnected(sender))\n\t\t\t{\n";
