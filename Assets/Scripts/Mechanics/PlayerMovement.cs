@@ -122,8 +122,10 @@ public class PlayerMovement : MonoBehaviour
         _rotationX += rotationX;
 
         _rotationY = Mathf.Clamp(_rotationY, -90, 90);
+        var baseRotation = Quaternion.FromToRotation(Vector3.up, _groundDirection);
+
         _camera.transform.localRotation = Quaternion.Euler(-_rotationY, 0, 0);
-        transform.rotation = Quaternion.Euler(0, _rotationX, 0);
+        transform.rotation = baseRotation * Quaternion.AngleAxis(_rotationX, Vector3.up);
     }
 
     private void FixedUpdate()
@@ -133,6 +135,7 @@ public class PlayerMovement : MonoBehaviour
             _wantToJump = false;
             _isJumping = true;
             _slideJump = _isSliding;
+            _initialJumpVector = _groundDirection;
             _jumpElapsed = 0f;
         }
 
@@ -316,6 +319,11 @@ public class PlayerMovement : MonoBehaviour
         }
 
         _isGrounded |= isGrounded;
+    }
+
+    public void SetGravity(Vector3 direction)
+    {
+        _groundDirection = direction;
     }
 
     private void OnDrawGizmos()
