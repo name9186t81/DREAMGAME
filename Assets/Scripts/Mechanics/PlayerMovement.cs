@@ -24,8 +24,11 @@ public class PlayerMovement : MonoBehaviour
     [Header("Movement")]
     [SerializeField, Range(0, 1f)] private float _airResistanceFactor;
     [SerializeField] private float _maxWalkSpeed;
-    [SerializeField] private float _maxSpeedReachTime;
+    [SerializeField] private float _acceleration;
     private Vector2 _walkDirection;
+    private Vector2 _walkDirectionLerped;
+    private Vector3 _lastForward;
+    private Vector3 _lastRight;
     private Vector3 _moveForce;
 
     [Header("Slide")]
@@ -76,6 +79,7 @@ public class PlayerMovement : MonoBehaviour
 
     private void Awake()
     {
+        Application.runInBackground = true;
         _groundNormal = _initialJumpVector = _groundDirection = Vector3.up;
         _rigidbody = GetComponent<Rigidbody>();
         _rigidbody.sleepThreshold = 0;
@@ -186,8 +190,7 @@ public class PlayerMovement : MonoBehaviour
     {
         if(!_isSliding) return Vector3.zero;
 
-        if(_isGrounded)
-            _slidingElapsed += Time.fixedDeltaTime;
+        _slidingElapsed += Time.fixedDeltaTime * (_isGrounded ? 1 : 0.2f);
         float delta = _slidingElapsed / _slideTime;
 
         if(delta > 1)
@@ -206,10 +209,10 @@ public class PlayerMovement : MonoBehaviour
 
     private Vector3 ComputeWalking()
     {
-        Vector3 direction = Quaternion.FromToRotation(_groundDirection, _groundNormal) * (transform.forward * _walkDirection.y + transform.right * _walkDirection.x);
-
-        Vector3 desiredWalkForce = Vector3.MoveTowards(_moveForce, direction * _maxWalkSpeed, _maxSpeedReachTime < Mathf.Epsilon ? float.MaxValue : _maxWalkSpeed / _maxSpeedReachTime * (_isGrounded ? 1f : _airResistanceFactor));
-        _moveForce = desiredWalkForce;
+        Vector3 mappedVelocity = _walkDirection.x * transform.right + _walkDirection.y * transform.forward;
+        Vector3 desiredVelocity = Quaternion.FromToRotation(_groundDirection, _groundNormal) * (mappedVelocity * _maxWalkSpeed);
+        float maxChange = _acceleration * Time.fixedDeltaTime;
+        _moveForce = Vector3.Lerp(_moveForce, desiredVelocity, maxChange);
         return _moveForce;
     }
 

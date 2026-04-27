@@ -6,6 +6,7 @@ public class GravityChangeZone : MonoBehaviour
     [SerializeField] private bool _useX;
     [SerializeField] private bool _useY;
     [SerializeField] private bool _useZ;
+    [SerializeField] private bool _inverseDirection;
 
     private void Awake()
     {
@@ -26,5 +27,5 @@ public class GravityChangeZone : MonoBehaviour
         DebugUtils.DebugDrawArrow(transform.position, transform.position + GetDirection);
     }
 
-    private Vector3 GetDirection => _useX ? transform.right : _useY ? transform.up : _useZ ? transform.forward : transform.forward;
+    private Vector3 GetDirection => (_useX ? transform.right : _useY ? transform.up : _useZ ? transform.forward : transform.forward) * (_inverseDirection ? -1 : 1);
 }
