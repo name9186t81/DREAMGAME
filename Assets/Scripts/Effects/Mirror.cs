@@ -12,8 +12,8 @@ public class Mirror : MonoBehaviour
     [SerializeField] private float _quality = 1;
     [SerializeField] private int _mirrorID;
     [SerializeField] private bool _runInEditor = true;
+    [SerializeField] private Transform _portalExit;
     [SerializeField] private bool _isPortal = false;
-    [SerializeField] private bool _inverseLookDirectionWhenNotLooking = true;
 
     private static Dictionary<int, Mirror> _activeMirrors = new Dictionary<int, Mirror>();
     private bool _wasAdded;
@@ -111,22 +111,51 @@ public class Mirror : MonoBehaviour
 
     private void UpdateProbeTransform(Camera cam, Vector3 normal)
     {
-        Vector3 proj = normal * Vector3.Dot(
-            normal, cam.transform.position - transform.position);
-        _probe.transform.position = cam.transform.position - 2 * proj;
+        if (_isPortal && _portalExit != null)
+        {
+            //todo move calculation into burst one day perhaps maybe
+            Vector3 proj = normal * Vector3.Dot(normal, cam.transform.position - transform.position);
+            Vector3 reflectedPos = cam.transform.position - 2 * proj;
 
-        Vector3 probeForward = _isPortal ? -Vector3.Reflect(cam.transform.forward, normal) : Vector3.Reflect(cam.transform.forward, normal);
-        Vector3 probeUp = Vector3.Reflect(cam.transform.up, normal);
-        _probe.transform.LookAt(_probe.transform.position + probeForward, probeUp);
+            Vector3 reflectedForward = Vector3.Reflect(cam.transform.forward, normal);
+            Vector3 reflectedUp = Vector3.Reflect(cam.transform.up, normal);
+
+            Vector3 localPos = transform.InverseTransformPoint(reflectedPos);
+            Vector3 localForward = transform.InverseTransformDirection(reflectedForward);
+            Vector3 localUp = transform.InverseTransformDirection(reflectedUp);
+
+            _probe.transform.position = _portalExit.transform.TransformPoint(localPos);
+            _probe.transform.rotation = _portalExit.transform.rotation * Quaternion.LookRotation(localForward, localUp);
+        }
+        else
+        {
+            Vector3 proj = normal * Vector3.Dot(
+                normal, cam.transform.position - transform.position);
+            _probe.transform.position = cam.transform.position - 2 * proj;
+
+            Vector3 probeForward = _isPortal ? -Vector3.Reflect(cam.transform.forward, normal) : Vector3.Reflect(cam.transform.forward, normal);
+            Vector3 probeUp = Vector3.Reflect(cam.transform.up, normal);
+            _probe.transform.LookAt(_probe.transform.position + probeForward, probeUp);
+        }
     }
 
     private void CalculateObliqueProjection(Vector3 normal)
     {
-        if (_isPortal) return;
+        Vector3 planePos, planeNormal;
+        if (_isPortal && _portalExit != null)
+        {
+            planePos = _portalExit.transform.position;
+            planeNormal = _portalExit.transform.forward;
+        }
+        else
+        {
+            planePos = transform.position;
+            planeNormal = normal;
+        }
 
         Matrix4x4 viewMatrix = _probe.worldToCameraMatrix;
-        Vector3 viewPosition = viewMatrix.MultiplyPoint(transform.position);
-        Vector3 viewNormal = viewMatrix.MultiplyVector(normal);
+        Vector3 viewPosition = viewMatrix.MultiplyPoint(planePos);
+        Vector3 viewNormal = viewMatrix.MultiplyVector(planeNormal);
         Vector4 plane = new Vector4(
             viewNormal.x, viewNormal.y, viewNormal.z,
             -Vector3.Dot(viewPosition, viewNormal));
