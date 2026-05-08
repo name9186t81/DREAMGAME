@@ -41,6 +41,8 @@ public class PlayerMovement : MonoBehaviour
     private bool _isSliding;
     private bool _wantToSlide;
     private Vector2 _slideDirection;
+    private Vector3 _initialSlideForward;
+    private Vector3 _initialSlideRight;
     private float _slidingElapsed;
     private float _slidingIntegral;
 
@@ -115,7 +117,7 @@ public class PlayerMovement : MonoBehaviour
             _walkDirection -= Vector2.right;
         }
 
-        if (Input.GetKeyDown(KeyCode.C) && !_isSliding)
+        if (Input.GetKeyDown(KeyCode.C) && !_isSliding && _isGrounded)
         {
             _wantToSlide = true;
         }
@@ -147,6 +149,8 @@ public class PlayerMovement : MonoBehaviour
         {
             _isSliding = true;
             _wantToSlide = false;
+            _initialSlideForward = transform.forward;
+            _initialSlideRight = transform.right;
 
             _slideDirection = _walkDirection;
             _moveForce = Quaternion.FromToRotation(_groundDirection, _groundNormal) * (transform.forward * _walkDirection.y + transform.right * _walkDirection.x) * _maxWalkSpeed;
@@ -174,14 +178,9 @@ public class PlayerMovement : MonoBehaviour
         Vector3 expectedPosition = _lastGroundPosition + _rigidbody.linearVelocity;
         if(RaycastUtils.Raycast(transform.position, -_groundDirection, transform.IgnoreSelf(), out var res, 999999, _collisions))
         {
-            Debug.Log("Snapped - " + _rigidbody.linearVelocity);
-            //transform.position = res.point + _groundDirection * _height * 0.5f;
-            DebugUtils.DebugDrawArrow(res.point, res.point + res.normal, Color.red, 2f);
-
             float mag = _rigidbody.linearVelocity.magnitude;
             _rigidbody.linearVelocity = (_rigidbody.linearVelocity - res.normal * Vector3.Dot(res.normal, _rigidbody.linearVelocity)).normalized * mag;
             _groundNormal = res.normal;
-            Debug.Log("AfterSnapped - " + _rigidbody.linearVelocity);
         }
     }
 
@@ -190,7 +189,7 @@ public class PlayerMovement : MonoBehaviour
     {
         if(!_isSliding) return Vector3.zero;
 
-        _slidingElapsed += Time.fixedDeltaTime * (_isGrounded ? 1 : 0.2f);
+        _slidingElapsed += Time.fixedDeltaTime * (_isGrounded ? 1 : 0);
         float delta = _slidingElapsed / _slideTime;
 
         if(delta > 1)
@@ -203,13 +202,14 @@ public class PlayerMovement : MonoBehaviour
         float angle = Mathf.MoveTowardsAngle(Mathf.Atan2(_slideDirection.y, _slideDirection.x) * Mathf.Rad2Deg, Mathf.Atan2(_walkDirection.y, _walkDirection.x) * Mathf.Rad2Deg, Time.fixedDeltaTime * 2 * _slideMaxDirectionChangeTime) * Mathf.Deg2Rad;
         _slideDirection = new Vector2(Mathf.Cos(angle), Mathf.Sin(angle));
 
-        Vector3 projection = Quaternion.FromToRotation(_groundDirection, _groundNormal) * (_slideDirection.y * transform.forward + transform.right * _slideDirection.x);
+        Vector3 projection = Quaternion.FromToRotation(_groundDirection, _groundNormal) * (_slideDirection.y * _initialSlideForward + _initialSlideRight * _slideDirection.x);
         return projection * _slideFalloff.Evaluate(delta) * _slideDistance / _slideTime / _slidingIntegral;
     }
 
     private Vector3 ComputeWalking()
     {
         Vector3 mappedVelocity = _walkDirection.x * transform.right + _walkDirection.y * transform.forward;
+        Debug.DrawLine(transform.position, transform.position + mappedVelocity, Color.indianRed);
         Vector3 desiredVelocity = Quaternion.FromToRotation(_groundDirection, _groundNormal) * (mappedVelocity * _maxWalkSpeed);
         float maxChange = _acceleration * Time.fixedDeltaTime;
         _moveForce = Vector3.Lerp(_moveForce, desiredVelocity, maxChange);
@@ -221,7 +221,7 @@ public class PlayerMovement : MonoBehaviour
         if (!_isJumping) return Vector3.zero;
          
         _jumpElapsed += Time.deltaTime;
-        float jumpTime = _slideJump ? _jumpTime * 2 : _jumpTime;
+        float jumpTime = _jumpTime;
         float delta = _jumpElapsed / jumpTime;
 
         if(delta < _jumpApex)
@@ -256,7 +256,7 @@ public class PlayerMovement : MonoBehaviour
         Vector3 direction = _initialJumpVector;
         float diff = curveMomentNext - curveMoment;
 
-        direction *= (diff) / Time.fixedDeltaTime * (_slideJump ? _maxJumpHeight * 2 : _maxJumpHeight);
+        direction *= (diff) / Time.fixedDeltaTime * _maxJumpHeight;
         _jumpForce = direction;
         return _jumpForce;
     }
@@ -290,10 +290,16 @@ public class PlayerMovement : MonoBehaviour
 
         for (int i = 0; i < collision.contactCount && !isGrounded; i++)
         {
-            isGrounded |= Vector3.Dot(_groundDirection, collision.GetContact(i).normal) > _groundedThreshold;
+            float dot = Vector3.Dot(_groundDirection, collision.GetContact(i).normal);
+            isGrounded |= dot > _groundedThreshold;
             if (!point.HasValue)
             {
                 point = collision.GetContact(i);
+            }
+
+            if(dot < -_groundedThreshold && _isJumping)
+            {
+                _jumpElapsed = _jumpApex;
             }
         }
 
@@ -377,4 +383,6 @@ public class PlayerMovement : MonoBehaviour
 
         return -1f;
     }
+
+    public float MaxWalkSpeed => _maxWalkSpeed;
 }

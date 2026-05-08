@@ -1,3 +1,4 @@
+using Mechanics;
 using System.Collections.Generic;
 using UnityEngine;
 using UnityEngine.Rendering;
@@ -14,11 +15,20 @@ public class Mirror : MonoBehaviour
     [SerializeField] private bool _runInEditor = true;
     [SerializeField] private Transform _portalExit;
     [SerializeField] private bool _isPortal = false;
+    [SerializeField] private bool _oneWayPortal = false;
 
     private static Dictionary<int, Mirror> _activeMirrors = new Dictionary<int, Mirror>();
     private bool _wasAdded;
     private RenderTexture _rt;
     private Camera _probe;
+
+    private void Awake()
+    {
+        if(TryGetComponent<Collider>(out var collider))
+        {
+            collider.isTrigger = true;
+        }
+    }
 
     private void OnEnable()
     {
@@ -175,8 +185,22 @@ public class Mirror : MonoBehaviour
         }
     }
 
-    private void OnDrawGizmos()
+    private void OnTriggerEnter(Collider other)
     {
-        Gizmos.DrawWireCube(transform.position, _scale);
+        if (!_isPortal) return;
+
+        if (_oneWayPortal && Vector3.Dot(transform.forward, other.transform.position - transform.position) < 0) return;
+
+        if (!other.transform.TryGetComponent<IPortalInteractable>(out var interactable)) return;
+
+        interactable.OnPortalEnter(transform.position, transform.forward, transform.rotation, _portalExit.position, _portalExit.forward, _portalExit.rotation);
+    }
+
+    private void OnDrawGizmosSelected()
+    {
+        if (_isPortal && _portalExit != null)
+        {
+            Gizmos.DrawLine(transform.position, _portalExit.transform.position);
+        }
     }
 }
