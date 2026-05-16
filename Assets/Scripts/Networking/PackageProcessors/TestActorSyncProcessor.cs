@@ -36,7 +36,7 @@ namespace Networking
 
 		private void SolveForClient(TestActorSyncPackage package, CancellationTokenSource cts, IPEndPoint sender, Client client)
 		{
-			NetworkManager.Instance.UpdateDisplayer(package);
+			//NetworkManager.Instance.UpdateDisplayer(package);
 		}
 	}
 }

@@ -84,7 +84,7 @@ namespace Networking
         public int _ownPort;
         private List<IPEndPoint> _connected = new List<IPEndPoint>();
 
-        private const int MTU = 1400;
+        public const int MTU = 1400;
 
         public ListenerBase(int workerThreads = -1, int listenerThreads = -1, int listeningPort = -1)
         {

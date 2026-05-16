@@ -38,7 +38,7 @@ public class ClientServerConnectionHandler : MonoBehaviour
                 Debug.LogError("Failed to parse port");
             }
 
-            NetworkManager.Instance.CreateServer(1, 1, port);
+            NetworkManager.Instance.CreateServer(port);
             NetworkManager.Instance.CreateClient();
             NetworkManager.Instance.Client.Connect(new IPEndPoint(IPAddress.Loopback, port));
         });

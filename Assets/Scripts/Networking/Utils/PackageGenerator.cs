@@ -358,7 +358,7 @@ namespace Networking.Utils
                     if (type.GetElementType() == typeof(byte))
                     {
                         upperPart += $"\t\t\t\tvar split = data[(offset + localOffset)..(offset + localOffset + {typeName + "Size"})];\n";
-                        upperPart += $"\t\t\t\t{typeName} = data.ToArray();\n";
+                        upperPart += $"\t\t\t\t{typeName} = split.ToArray();\n";
                     }
                     else
                     {

@@ -13,6 +13,8 @@ namespace Networking
         ClientShutdownNotification,
         ServerShutdown,
         TestActorSync,
-        Invalid
+        Invalid,
+        NetObjectSpawn,
+        NetObjectIDAssignment
     }
 }
