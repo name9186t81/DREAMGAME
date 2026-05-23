@@ -29,7 +29,7 @@ namespace Networking
 				return;
 			}
 			
-			if(!NetworkManager.Instance.TryGetEnityByID(package.ID, out var entity) || 
+			if(!NetworkManager.Instance.TryGetSpawnedEnityByID(package.ID, out var entity) || 
 				(server.TryGetUserID(sender, out var id) && !NetworkManager.Instance.OwnsEntity(package.ID, id)))
             {
                 server.DebugMessageWarning("failed to find entity with id - " + package.ID, ListenerBase.DebugLevel.Low);

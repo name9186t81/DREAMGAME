@@ -4,6 +4,7 @@ using System;
 using System.Net;
 using System.Threading;
 using System.Threading.Tasks;
+using UnityEngine;
 
 namespace Networking
 {
@@ -36,14 +37,18 @@ namespace Networking
 			server.TryGetUserID(sender, out byte id);
 			package.ClientID = id;
 
+			Debug.LogWarning("1");
 			server.AddObjectOwner(serverID, id);
-			server.SendPackageNextTickToEveryoneExcept(package, sender);
-			server.SendPackageNextTick(new NetObjectIDAssignmentPackage(clientID, serverID), sender);
-		}
+            Debug.LogWarning("2");
+            server.SendPackageNextTickToEveryoneExcept(new NetObjectSpawnPackage(package.Position, package.Rotation, package.SpawnID, package.EntityID, package.ClientID, package.SpawnData), sender);
+            Debug.LogWarning("3");
+            server.SendPackageNextTick(new NetObjectIDAssignmentPackage(clientID, serverID), sender);
+            Debug.LogWarning("4");
+        }
 
 		private void SolveForClient(NetObjectSpawnPackage package, CancellationTokenSource cts, IPEndPoint sender, Client client)
 		{
-			
+			NetworkManager.Instance.SpawnEntity(package.SpawnID, package.EntityID, package.Position, Quaternion.Euler(package.Rotation), package.ClientID, package.DataSize > 0 ? package.SpawnData : null);
 		}
 	}
 }

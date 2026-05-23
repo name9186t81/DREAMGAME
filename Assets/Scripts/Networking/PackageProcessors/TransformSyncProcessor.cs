@@ -4,6 +4,7 @@ using System;
 using System.Net;
 using System.Threading;
 using System.Threading.Tasks;
+using UnityEngine;
 
 namespace Networking
 {
@@ -23,6 +24,10 @@ namespace Networking
 
 		private void SolveForServer(TransformSyncPackage package, CancellationTokenSource cts, IPEndPoint sender, Server server)
 		{
+			Debug.LogWarning(package == null);
+			Debug.LogWarning(cts == null);
+			Debug.LogWarning(sender == null);
+			Debug.LogWarning(server == null);
 			if (!server.IsUserConnected(sender))
 			{
 				server.DebugMessageWarning("Received package from unknown IP - " + sender.ToString(), ListenerBase.DebugLevel.Low);

@@ -1,4 +1,5 @@
 using Networking.Packages;
+using System;
 using System.Collections.Concurrent;
 using System.Collections.Generic;
 using Unity.VisualScripting;
@@ -38,9 +39,18 @@ namespace Networking
         [Header("NetEntities")]
         [SerializeField] private NetworkEntity[] _entities;
         private ConcurrentPairedDictionary<NetworkEntity, int> _entitiesIDs = new ConcurrentPairedDictionary<NetworkEntity, int>();
+        private ConcurrentPairedDictionary<NetworkEntity, int> _spawnedEntitiesIDs = new ConcurrentPairedDictionary<NetworkEntity, int>();
         private Dictionary<int, NetworkEntity> _pendingObjectsForServerID = new Dictionary<int, NetworkEntity>();
         private Dictionary<int, NetworkEntity> _spawnedObjects = new Dictionary<int, NetworkEntity>();
         private ConcurrentBag<SpawnData> _pendingSpawns = new ConcurrentBag<SpawnData>();
+
+        [Header("Debug")]
+        [SerializeField] private long _clientRunTime;
+        [SerializeField] private long _serverRuntime;
+
+
+        private bool _needFinishConnectEvent;
+        public event Action OnFinishConnect;
 
         private Client _client;
         private Server _server;
@@ -78,6 +88,22 @@ namespace Networking
                 {
                     Debug.LogError("Failed to spawn net object");
                 }
+            }
+
+            if (_needFinishConnectEvent)
+            {
+                Debug.Log("YG");
+                _needFinishConnectEvent = false;
+                OnFinishConnect?.Invoke();
+            }
+
+            if (ServerExists)
+            {
+                _serverRuntime = _server.RunTime;
+            }
+            if (ClientExists)
+            {
+                _clientRunTime = _client.RunTime;
             }
         }
 
@@ -151,6 +177,9 @@ namespace Networking
             if(_pendingObjectsForServerID.TryGetValue(clientID, out var netObj))
             {
                 netObj.SetID(serverID, true);
+
+                _spawnedObjects.Remove(clientID);
+                _spawnedObjects.Add(serverID, netObj);
             }
         }
 
@@ -203,6 +232,12 @@ namespace Networking
                 return;
             }
             _client = new Client(workers, listeners);
+            _client.OnFinishConnect += FinishConnect;
+        }
+
+        private void FinishConnect()
+        {
+            _needFinishConnectEvent = true;
         }
 
         public void CreateClient()
@@ -213,6 +248,7 @@ namespace Networking
                 return;
             }
             _client = new Client(-1, -1);
+            _client.OnFinishConnect += FinishConnect;
         }
 
         public void KillServer()
@@ -233,7 +269,7 @@ namespace Networking
 
         public bool ApplyPackageToEntity(int entityID, IPackage package)
         {
-            if (_entitiesIDs.TryGet(entityID, out var entity))
+            if (_spawnedObjects.TryGetValue(entityID, out var entity))
             {
                 entity.ApplyPackage(package);
                 return true;
@@ -244,6 +280,11 @@ namespace Networking
         public NetworkEntity GetEntityByID(int id)
         {
             return _entitiesIDs[id];
+        }
+
+        public bool TryGetSpawnedEnityByID(int id, out NetworkEntity entity)
+        {
+            return _spawnedObjects.TryGetValue(id, out entity);
         }
 
         public bool TryGetEnityByID(int id, out NetworkEntity entity)

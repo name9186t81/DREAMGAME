@@ -152,7 +152,7 @@ namespace Networking.Utils
                     {
                         variableSize += " + ";
                     }
-                    variableSize += arrayNames[i] + ".Length * " + arraySizes[i];
+                    variableSize += $"({arrayNames[i]} == null ? 0 : " + arrayNames[i] + ".Length * " + arraySizes[i] + ")";
                 }
 
                 for (int i = 0; i < stringNames.Count; i++)
@@ -474,7 +474,7 @@ namespace Networking.Utils
                     var elementType = data[i].GetElementType();
                     TryGetName(i, names, out typeName);
 
-                    upperPart += $"\t\t\t{typeName + "Size"} = (short){typeName}.Length;\n";
+                    upperPart += $"\t\t\t{typeName + "Size"} = {typeName} == null ? (short)0 : (short){typeName}.Length;\n";
                     upperPart += $"\t\t\t{typeName + "Size"}.Convert(data, offset + localOffset);\n";
                     upperPart += $"\t\t\tlocalOffset += sizeof(short);\n";
                     upperPart += $"\t\t\tif({typeName + "Size"} > 0)\n";

@@ -15,7 +15,7 @@ namespace Networking
 			NetObjectIDAssignmentPackage package = new NetObjectIDAssignmentPackage();
 			package.Deserialize(data, package.GetOffset());
 
-
+			NetworkManager.Instance.AssignID(package.LocalID, package.ServerID);
 			return Task.FromResult(true);
 		}
 	}

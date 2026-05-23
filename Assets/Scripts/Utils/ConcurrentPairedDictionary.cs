@@ -54,4 +54,24 @@ public sealed class ConcurrentPairedDictionary<T1, T2>
     {
         return _inverseDictionary.ContainsKey(value);
     }
+
+    public bool Remove(T1 value)
+    {
+        if(_directDictionary.TryRemove(value, out var t2))
+        {
+            return _inverseDictionary.TryRemove(t2, out _);
+        }
+
+        return false;
+    }
+
+    public bool Remove(T2 value)
+    {
+        if (_inverseDictionary.TryRemove(value, out var t1))
+        {
+            return _directDictionary.TryRemove(t1, out _);
+        }
+
+        return false;
+    }
 }

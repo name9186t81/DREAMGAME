@@ -250,7 +250,7 @@ namespace Networking
                                     }
                                     catch (Exception ex)
                                     {
-                                        DebugMessageError("Error when sending package: " + ex.Message, DebugLevel.Low);
+                                        DebugMessageError($"Error when sending package({package.Item1}, {package.Item2}): " + ex.Message, DebugLevel.Low);
                                     }
                                 });
                             });
@@ -268,7 +268,7 @@ namespace Networking
                                 }
                                 catch (Exception ex)
                                 {
-                                    DebugMessageError("Error when sending package: " + ex.Message, DebugLevel.Low);
+                                    DebugMessageError($"Error when sending package({package.Item1}, {package.Item2}): " + ex.Message, DebugLevel.Low);
                                 }
                             }
                         }

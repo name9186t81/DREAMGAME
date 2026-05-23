@@ -11,6 +11,8 @@ namespace Networking
         private bool _inited = false;
         private IPEndPoint _server;
 
+        public event Action OnFinishConnect;
+
         public Client(int workers, int listeners) : base(workers, listeners, -1)
         {
             SetListenerName("Client");
@@ -66,7 +68,7 @@ namespace Networking
 
         public void FinishSyncingTime()
         {
-
+            OnFinishConnect?.Invoke();
         }
 
         public void SendTestMessage(string testMessage, IPEndPoint point)

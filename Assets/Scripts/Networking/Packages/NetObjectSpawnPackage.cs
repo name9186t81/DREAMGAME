@@ -22,7 +22,7 @@ namespace Networking.Packages
 		public System.Byte ClientID;
 		private short SpawnDataSize;
 		public System.Byte[] SpawnData;
-		private int VariableSize => SpawnData.Length * 1;
+		private int VariableSize => (SpawnData == null ? 0 : SpawnData.Length * 1);
 
 		public NetObjectSpawnPackage(){}
 		public NetObjectSpawnPackage(UnityEngine.Vector3 position, UnityEngine.Vector3 rotation, System.Int32 spawnID, System.Int32 entityID, System.Byte clientID, System.Byte[] spawnData)
@@ -36,7 +36,7 @@ namespace Networking.Packages
 		}
 		public void Serialize(byte[] data, int offset)
 		{
-			int localOffset = 0;
+            int localOffset = 0;
 			Position.AddVector3ToBuffer(data, offset + localOffset);
 			localOffset += sizeof(float) * 3;
 			Rotation.AddVector3ToBuffer(data, offset + localOffset);
@@ -47,7 +47,7 @@ namespace Networking.Packages
 			localOffset += sizeof(Int32);
 			data[offset + localOffset] = ClientID;
 			localOffset++;
-			SpawnDataSize = (short)SpawnData.Length;
+			SpawnDataSize = SpawnData == null ? (short)0 : (short)SpawnData.Length;
 			SpawnDataSize.Convert(data, offset + localOffset);
 			localOffset += sizeof(short);
 			if(SpawnDataSize > 0)
@@ -59,9 +59,9 @@ namespace Networking.Packages
 					localOffset += singleSizeSpawnData;
 				}
 			}
-		}
-		
-		public void Deserialize(ReadOnlySpan<byte> data, int offset)
+        }
+
+        public void Deserialize(ReadOnlySpan<byte> data, int offset)
 		{
 			int localOffset = 0;
 			Position = NetworkUtils.GetVector3FromBuffer(data, offset + localOffset);
