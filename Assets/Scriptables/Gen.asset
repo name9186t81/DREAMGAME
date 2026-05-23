@@ -12,27 +12,11 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 8a337c25e5459044894ecb4d690a647a, type: 3}
   m_Name: Gen
   m_EditorClassIdentifier: Assembly-CSharp::Networking.PackageGeneratorDescriptor
-  _type: 12
+  _type: 17
   _flags: 1
   _pathFromCore: Scripts/Networking/Packages
   _descriptors:
-  - Name: Position
-    IsArray: 0
-    CustomStructTypeName: 
-    DefaultType: 9
-  - Name: Rotation
-    IsArray: 0
-    CustomStructTypeName: 
-    DefaultType: 9
-  - Name: SpawnID
+  - Name: ID
     IsArray: 0
     CustomStructTypeName: 
     DefaultType: 0
-  - Name: EntityID
-    IsArray: 0
-    CustomStructTypeName: 
-    DefaultType: 0
-  - Name: CustomData
-    IsArray: 1
-    CustomStructTypeName: 
-    DefaultType: 5

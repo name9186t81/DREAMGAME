@@ -13,7 +13,7 @@ MonoBehaviour:
   m_Name: ProcessorGenerator
   m_EditorClassIdentifier: Assembly-CSharp::Networking.Utils.PackageProcessorGenerator
   _filePath: Scripts/Networking/PackageProcessors
-  _type: 10
+  _type: 17
   _permission: 2
   _separateClientAndServerMethods: 1
   _serverConnectionValidation: 1

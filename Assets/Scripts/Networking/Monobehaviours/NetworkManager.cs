@@ -177,6 +177,14 @@ namespace Networking
             return true;
         }
 
+        public void KillEntity(int id)
+        {
+            if (TryGetEnityByID(id, out var entity))
+            {
+                entity.Kill(false);
+            }
+        }
+
         public void CreateServer(int port)
         {
             if (ServerExists)
@@ -223,11 +231,52 @@ namespace Networking
             }
         }
 
+        public bool ApplyPackageToEntity(int entityID, IPackage package)
+        {
+            if (_entitiesIDs.TryGet(entityID, out var entity))
+            {
+                entity.ApplyPackage(package);
+                return true;
+            }
+            return false;
+        }
+
+        public NetworkEntity GetEntityByID(int id)
+        {
+            return _entitiesIDs[id];
+        }
+
+        public bool TryGetEnityByID(int id, out NetworkEntity entity)
+        {
+            return _entitiesIDs.TryGet(id, out entity);
+        }
+
+        public bool TryToSendPackageToServer(IPackage package)
+        {
+            if (Connected)
+            {
+                _client.SendPackageToServer(package);
+                return true;
+            }
+            return false;
+        }
+
+        public bool OwnsEntity(int id, byte owner)
+        {
+            if(TryGetEnityByID(id, out var entity))
+            {
+                return entity.OwnerID == owner;
+            }
+            return false;
+        }
+
         private int LocalID => _localID++;
         private bool ServerExists => _server != null;
-        private bool ClientExists => _server != null;
+        private bool ClientExists => _client != null;
         public Server Server => _server;
         public Client Client => _client;
         public bool IsHost => _server != null && _client != null;
+        public bool Connected => _client != null && _client.Server != null;
+
     }
 }

@@ -1,3 +1,5 @@
+using Networking.Packages;
+using System.Collections.Concurrent;
 using UnityEngine;
 
 namespace Networking
@@ -11,11 +13,29 @@ namespace Networking
         }
         [SerializeField] private Permissions _spawnPermission;
         [SerializeField] private Permissions _killPermision;
+        private ConcurrentStack<IPackage> _receivedPackages = new ConcurrentStack<IPackage>();
         private byte _owner;
         private bool _isOwner;
         private bool _fullyInited;
         private int _entityID;
         private int _spawnID;
+
+        private void Update()
+        {
+            while(_receivedPackages.TryPop(out var package))
+            {
+                if (!ProcessPackage(package))
+                {
+                    Debug.LogError($"Failed to process {package} on {gameObject.name} gameObject");
+                }
+            }
+            UpdateInternal();
+        }
+
+        protected virtual void UpdateInternal()
+        {
+
+        }
 
         /// <summary>
         /// Called once the object spawns from server
@@ -27,9 +47,12 @@ namespace Networking
             return true;
         }
 
-        public void Kill(bool sendMessage)
+        public virtual void Kill(bool sendMessage)
         {
-
+            if (sendMessage)
+            {
+                SendPackageToServer(new EntityDestroyPackagePackage(NetID));
+            }
         }
 
         public virtual byte[] GetSpawnData(params object[] args)
@@ -43,6 +66,24 @@ namespace Networking
             if (_isOwner)
             {
                 _owner = id;
+            }
+        }
+
+        public void ApplyPackage(IPackage package)
+        {
+            _receivedPackages.Push(package);
+        }
+
+        protected virtual bool ProcessPackage(IPackage package)
+        {
+            return true;
+        }
+
+        protected void SendPackageToServer(IPackage package)
+        {
+            if (!NetworkManager.Instance.TryToSendPackageToServer(package))
+            {
+                Debug.LogError($"gameObject {gameObject.name} failed to send package to server");
             }
         }
 
@@ -60,6 +101,9 @@ namespace Networking
             }
         }
 
+        public bool IsOwner => _isOwner;
+        public int NetID => _entityID;
+        public byte OwnerID => _owner;
         public bool FullyInited => _fullyInited;
         public Permissions SpawnPermission => _spawnPermission;
         public Permissions KillPermission => _killPermision;

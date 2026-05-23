@@ -15,6 +15,10 @@ namespace Networking
         TestActorSync,
         Invalid,
         NetObjectSpawn,
-        NetObjectIDAssignment
+        NetObjectIDAssignment,
+        TransformSync,
+        TimeSync,
+        TimeSyncResponse,
+        EntityDestroyPackage
     }
 }

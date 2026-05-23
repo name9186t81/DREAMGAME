@@ -5,6 +5,30 @@ public sealed class ConcurrentPairedDictionary<T1, T2>
     private ConcurrentDictionary<T1, T2> _directDictionary = new ConcurrentDictionary<T1, T2>();
     private ConcurrentDictionary<T2, T1> _inverseDictionary = new ConcurrentDictionary<T2, T1>();
 
+    public T1 this[T2 index]
+    {
+        get
+        {
+            return _inverseDictionary[index];
+        }
+        set
+        {
+            _inverseDictionary[index] = value;
+        }
+    }
+
+    public T2 this[T1 index]
+    {
+        get
+        {
+            return _directDictionary[index];
+        }
+        set
+        {
+            _directDictionary[index] = value;
+        }
+    }
+
     public bool Add(T1 value, T2 value2)
     {
         _directDictionary.TryAdd(value, value2);

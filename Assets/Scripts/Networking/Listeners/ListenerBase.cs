@@ -61,6 +61,7 @@ namespace Networking
 
         private CancellationTokenSource _cts;
         private Stopwatch _watch;
+        private long _timeOffset;
         private Stopwatch _tickWatch;
         private int _tickRate = 60;
         private float _inverseTickRate = 1 / 60f;
@@ -608,6 +609,13 @@ namespace Networking
             _pendingTickPackages.Add((package, destination));
         }
 
+        public void SetTimeOffset(long offset)
+        {
+            _timeOffset = offset;
+        }
+
+        public long RunTime => _watch.ElapsedMilliseconds + _timeOffset;
+        public long RunTimeRaw => _watch.ElapsedMilliseconds;
         public int OwnPort => _ownPort;
         public IPEndPoint OwnPoint => _ownPoint;
         public CancellationTokenSource CTS => _cts;

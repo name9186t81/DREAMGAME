@@ -24,7 +24,7 @@ public class PlayerMovement : MonoBehaviour
     [Header("Movement")]
     [SerializeField, Range(0, 1f)] private float _airResistanceFactor;
     [SerializeField] private float _maxWalkSpeed;
-    [SerializeField] private float _acceleration;
+    [SerializeField, Range(0, 1f)] private float _acceleration;
     private Vector2 _walkDirection;
     private Vector2 _walkDirectionLerped;
     private Vector3 _lastForward;
@@ -176,8 +176,9 @@ public class PlayerMovement : MonoBehaviour
         if (_isGrounded || _isJumping || _stepsSinceGrounded != 2 || (_ignoreSnapping && _isSliding)) return;
 
         Vector3 expectedPosition = _lastGroundPosition + _rigidbody.linearVelocity;
-        if(RaycastUtils.Raycast(transform.position, -_groundDirection, transform.IgnoreSelf(), out var res, 999999, _collisions))
+        if(RaycastUtils.Raycast(transform.position, -_groundDirection, transform.IgnoreSelf(), out var res, 1.1f, _collisions))
         {
+            _rigidbody.MovePosition(res.point + _groundDirection);
             float mag = _rigidbody.linearVelocity.magnitude;
             _rigidbody.linearVelocity = (_rigidbody.linearVelocity - res.normal * Vector3.Dot(res.normal, _rigidbody.linearVelocity)).normalized * mag;
             _groundNormal = res.normal;
@@ -189,7 +190,7 @@ public class PlayerMovement : MonoBehaviour
     {
         if(!_isSliding) return Vector3.zero;
 
-        _slidingElapsed += Time.fixedDeltaTime * (_isGrounded ? 1 : 0);
+        _slidingElapsed += Time.fixedDeltaTime * (_isGrounded ? 1 : 0.1f);
         float delta = _slidingElapsed / _slideTime;
 
         if(delta > 1)
@@ -202,17 +203,17 @@ public class PlayerMovement : MonoBehaviour
         float angle = Mathf.MoveTowardsAngle(Mathf.Atan2(_slideDirection.y, _slideDirection.x) * Mathf.Rad2Deg, Mathf.Atan2(_walkDirection.y, _walkDirection.x) * Mathf.Rad2Deg, Time.fixedDeltaTime * 2 * _slideMaxDirectionChangeTime) * Mathf.Deg2Rad;
         _slideDirection = new Vector2(Mathf.Cos(angle), Mathf.Sin(angle));
 
-        Vector3 projection = Quaternion.FromToRotation(_groundDirection, _groundNormal) * (_slideDirection.y * _initialSlideForward + _initialSlideRight * _slideDirection.x);
+        Vector3 projection = Quaternion.FromToRotation(_groundDirection, _groundDirection) * (_slideDirection.y * _initialSlideForward + _initialSlideRight * _slideDirection.x);
         return projection * _slideFalloff.Evaluate(delta) * _slideDistance / _slideTime / _slidingIntegral;
     }
 
     private Vector3 ComputeWalking()
     {
-        Vector3 mappedVelocity = _walkDirection.x * transform.right + _walkDirection.y * transform.forward;
+        _walkDirectionLerped = Vector2.Lerp(_walkDirectionLerped, _walkDirection, _acceleration);
+        Vector3 mappedVelocity = _walkDirectionLerped.x * transform.right + _walkDirectionLerped.y * transform.forward;
         Debug.DrawLine(transform.position, transform.position + mappedVelocity, Color.indianRed);
         Vector3 desiredVelocity = Quaternion.FromToRotation(_groundDirection, _groundNormal) * (mappedVelocity * _maxWalkSpeed);
-        float maxChange = _acceleration * Time.fixedDeltaTime;
-        _moveForce = Vector3.Lerp(_moveForce, desiredVelocity, maxChange);
+        _moveForce = desiredVelocity;
         return _moveForce;
     }
 

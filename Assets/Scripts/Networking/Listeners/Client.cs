@@ -37,6 +37,14 @@ namespace Networking
             }
         }
 
+        public bool SendPackageToServer(IPackage package)
+        {
+            if (_server == null) return false;
+
+            SendPackageInstantly(package, Server);
+            return true;
+        }
+
         public bool SendPackageToServerNextTick(IPackage package)
         {
             if (_server == null) return false;
@@ -50,6 +58,17 @@ namespace Networking
             SendPackageNextTick(new ConnectionRequestPackage(), server);
         }
 
+        public void SyncTime()
+        {
+            var package = new TimeSyncPackage(RunTime);
+            SendPackageInstantly(package, Server);
+        }
+
+        public void FinishSyncingTime()
+        {
+
+        }
+
         public void SendTestMessage(string testMessage, IPEndPoint point)
         {
             TestPackage package = new TestPackage(testMessage);
@@ -59,6 +78,7 @@ namespace Networking
         public void SetServer(IPEndPoint point)
         {
             _server = point;
+            SyncTime();
         }
 
         public void SetID(byte id)
