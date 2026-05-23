@@ -69,6 +69,9 @@ namespace Networking
         public void FinishSyncingTime()
         {
             OnFinishConnect?.Invoke();
+
+            SendPackageToServer(new NetworkObjectRequestPackage(-1));
+            SendPackageToServer(new SnapshotRequestPackage(-1));
         }
 
         public void SendTestMessage(string testMessage, IPEndPoint point)

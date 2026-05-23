@@ -252,6 +252,7 @@ MonoBehaviour:
   _spawnPermission: 0
   _killPermision: 0
   _movement: {fileID: 6223508059896687236}
+  _playerCamera: {fileID: 8746932076012777003}
 --- !u!1 &5994659275930633052
 GameObject:
   m_ObjectHideFlags: 0

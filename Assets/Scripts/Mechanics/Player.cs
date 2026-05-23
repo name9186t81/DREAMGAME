@@ -6,6 +6,7 @@ using UnityEngine;
 public class Player : NetworkEntity
 {
     [SerializeField] private PlayerMovement _movement;
+    [SerializeField] private Camera _playerCamera;
     private Vector3 _previousPosition;
     private Vector3 _previousRotation;
 
@@ -34,7 +35,11 @@ public class Player : NetworkEntity
 
     public override bool Init(byte[] data)
     {
-        _movement.enabled = false;
+        if (!IsOwner)
+        {
+            _movement.enabled = false;
+            _playerCamera.enabled = false;
+        }
         return base.Init(data);
     }
 

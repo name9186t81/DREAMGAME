@@ -19,6 +19,9 @@ namespace Networking
         TransformSync,
         TimeSync,
         TimeSyncResponse,
-        EntityDestroyPackage
+        EntityDestroyPackage,
+        SnapshotRequest,
+        Snapshot,
+        NetworkObjectRequest
     }
 }

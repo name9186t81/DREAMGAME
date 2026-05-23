@@ -160,8 +160,10 @@ namespace Networking
             clone.SetOwner(true, Client.ID);
             int localID = LocalID;
             clone.SetID(localID, false);
+            clone.Init(data);
             _pendingObjectsForServerID.Add(localID, clone);
             _client.SendPackageToServerNextTick(new NetObjectSpawnPackage(position, rot.eulerAngles, localID, id, _client.ID, data));
+            _spawnedEntitiesIDs.Add(clone, localID);
 
             result = clone;
             return true;
@@ -178,8 +180,8 @@ namespace Networking
             {
                 netObj.SetID(serverID, true);
 
-                _spawnedObjects.Remove(clientID);
-                _spawnedObjects.Add(serverID, netObj);
+                _spawnedEntitiesIDs.Remove(clientID);
+                _spawnedEntitiesIDs.Add(netObj, serverID);
             }
         }
 
@@ -203,6 +205,7 @@ namespace Networking
             clone.SetSpawnID(spawnID);
             clone.SetOwner(false, client);
             clone.SetID(netID, true);
+            _spawnedEntitiesIDs.Add(clone, netID);
             return true;
         }
 
@@ -311,6 +314,7 @@ namespace Networking
             return false;
         }
 
+        public IEnumerable<KeyValuePair<NetworkEntity, int>> Entities => _spawnedEntitiesIDs;
         private int LocalID => _localID++;
         private bool ServerExists => _server != null;
         private bool ClientExists => _client != null;

@@ -1,6 +1,9 @@
-﻿using System.Collections.Concurrent;
+﻿using System.Collections;
+using System.Collections.Concurrent;
+using System.Collections.Generic;
+using UnityEngine.InputSystem;
 
-public sealed class ConcurrentPairedDictionary<T1, T2>
+public sealed class ConcurrentPairedDictionary<T1, T2> : IEnumerable<KeyValuePair<T1, T2>>
 {
     private ConcurrentDictionary<T1, T2> _directDictionary = new ConcurrentDictionary<T1, T2>();
     private ConcurrentDictionary<T2, T1> _inverseDictionary = new ConcurrentDictionary<T2, T1>();
@@ -73,5 +76,15 @@ public sealed class ConcurrentPairedDictionary<T1, T2>
         }
 
         return false;
+    }
+
+    public IEnumerator<KeyValuePair<T1, T2>> GetEnumerator()
+    {
+        return _directDictionary.GetEnumerator();
+    }
+
+    IEnumerator IEnumerable.GetEnumerator()
+    {
+        return GetEnumerator();
     }
 }
