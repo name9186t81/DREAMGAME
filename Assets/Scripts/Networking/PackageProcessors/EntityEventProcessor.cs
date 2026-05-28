@@ -4,16 +4,15 @@ using System;
 using System.Net;
 using System.Threading;
 using System.Threading.Tasks;
-using UnityEngine;
 
 namespace Networking
 {
-	[Processor(PackageType.TransformSync)]
-	public sealed class TransformSyncProcessor : IPackageProcessor
+	[Processor(PackageType.EntityEvent)]
+	public sealed class EntityEventProcessor : IPackageProcessor
 	{
 		public Task<bool> Process(ReadOnlySpan<byte> data, CancellationTokenSource cts, IPEndPoint sender, ListenerBase receiver)
 		{
-			TransformSyncPackage package = new TransformSyncPackage();
+			EntityEventPackage package = new EntityEventPackage();
 			package.Deserialize(data, package.GetOffset());
 			if(receiver is Server server)
 				SolveForServer(package, cts, sender, server);
@@ -22,7 +21,7 @@ namespace Networking
 			return Task.FromResult(true);
 		}
 
-		private void SolveForServer(TransformSyncPackage package, CancellationTokenSource cts, IPEndPoint sender, Server server)
+		private void SolveForServer(EntityEventPackage package, CancellationTokenSource cts, IPEndPoint sender, Server server)
 		{
 			if (!server.IsUserConnected(sender))
 			{
@@ -33,11 +32,15 @@ namespace Networking
 			server.SendPackageNextTickToEveryoneExcept(package, sender);
 		}
 
-		private void SolveForClient(TransformSyncPackage package, CancellationTokenSource cts, IPEndPoint sender, Client client)
+		private void SolveForClient(EntityEventPackage package, CancellationTokenSource cts, IPEndPoint sender, Client client)
 		{
-			if(!NetworkManager.Instance.ApplyPackageToEntity(package.EntityID, package))
+			if(NetworkManager.Instance.TryGetSpawnedEnityByID(package.EntityID, out var entity))
 			{
-				client.DebugMessageError("Failed to change transform for entity with id - " + package.EntityID, ListenerBase.DebugLevel.Medium);
+				entity.ApplyPackage(package);
+			}
+			else
+			{
+				client.DebugMessageWarning($"Cannot find entity for event({package.EventID}), entity id - {package.EntityID}, dataSize - {package.DataSize}", ListenerBase.DebugLevel.Low);
 			}
 		}
 	}

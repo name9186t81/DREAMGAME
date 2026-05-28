@@ -77,6 +77,8 @@ public class PlayerMovement : MonoBehaviour
     private bool _wasGrounded;
     private bool _isGrounded;
 
+    private bool _inputDisabled;
+
     private Rigidbody _rigidbody;
 
     private void Awake()
@@ -92,8 +94,36 @@ public class PlayerMovement : MonoBehaviour
         _slidingIntegral = ComputeIntegral(_slideFalloff);
     }
 
+    public void DisableInput()
+    {
+        _inputDisabled = true;
+    }
+
+    public void Freeze()
+    {
+        _rigidbody.constraints = RigidbodyConstraints.FreezeAll;
+    }
+
+    public void Jump()
+    {
+        if (!_isJumping)
+        {
+            _wantToJump = true;
+        }
+    }
+
+    public void Slide()
+    {
+        if (!_isSliding && _isGrounded)
+        {
+            _wantToSlide = true;
+        }
+    }
+
     private void Update()
     {
+        if (_inputDisabled) return;
+
         if(!_isJumping && Input.GetKeyDown(KeyCode.Space))
         {
             _wantToJump = true;
@@ -138,6 +168,7 @@ public class PlayerMovement : MonoBehaviour
     {
         if (_wantToJump && _isGrounded)
         {
+            OnJump?.Invoke();
             _wantToJump = false;
             _isJumping = true;
             _slideJump = _isSliding;
@@ -147,6 +178,7 @@ public class PlayerMovement : MonoBehaviour
 
         if (_wantToSlide && _isGrounded && !_isSliding)
         {
+            OnSlideStart?.Invoke();
             _isSliding = true;
             _wantToSlide = false;
             _initialSlideForward = transform.forward;
@@ -386,4 +418,13 @@ public class PlayerMovement : MonoBehaviour
     }
 
     public float MaxWalkSpeed => _maxWalkSpeed;
+    public bool IsSliding => _isSliding;
+    public float SlideDistance => _slideDistance;
+    public float SlideElapsed => _slidingElapsed;
+    public float SlideTime => _slideTime;
+    public bool IsJumping => _isJumping;
+    public float JumpHeight => _maxJumpHeight;
+    public float JumpElapsed => _jumpElapsed;
+    public float JumpApex => _jumpApex;
+    public float JumpTime => _jumpTime;
 }

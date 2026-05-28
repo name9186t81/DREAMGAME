@@ -1,14 +1,18 @@
 using Networking;
 using Networking.Packages;
+using System;
 using TMPro;
 using UnityEngine;
 
 public class Player : NetworkEntity
 {
     [SerializeField] private PlayerMovement _movement;
+    [SerializeField] private PlayerInputReader _input;
     [SerializeField] private Camera _playerCamera;
     private Vector3 _previousPosition;
     private Vector3 _previousRotation;
+
+    public event Action<EntityEvent, byte[]> OnEvent;
 
     protected override void UpdateInternal()
     {
@@ -37,10 +41,47 @@ public class Player : NetworkEntity
     {
         if (!IsOwner)
         {
-            _movement.enabled = false;
+            _movement.DisableInput();
+            _movement.Freeze();
             _playerCamera.enabled = false;
+            _input.enabled = false;
+        }
+        else
+        {
+            _movement.OnJump += Jump;
+            _movement.OnSlideStart += Slide;
         }
         return base.Init(data);
+    }
+
+    private void Slide()
+    {
+        SendEvent(EntityEvent.Slide, null);
+    }
+
+    private void Jump()
+    {
+        SendEvent(EntityEvent.Jump, null);
+    }
+
+    protected override void ProcessEvent(EntityEvent @event, byte[] data)
+    {
+        OnEvent?.Invoke(@event, data);
+        if (@event == EntityEvent.Slide)
+        {
+            _movement.Slide();
+        }
+        else if (@event == EntityEvent.Jump)
+        {
+            _movement.Jump();
+        }
+
+        base.ProcessEvent(@event, data);
+    }
+
+    public void SendNewEvent(EntityEvent @event, byte[] data)
+    {
+        SendEvent(@event, data);
     }
 
     protected override bool ProcessPackage(IPackage package)
@@ -51,6 +92,7 @@ public class Player : NetworkEntity
             transform.position = sync.Position;
             transform.eulerAngles = sync.Rotation;
         }
+        base.ProcessPackage(package);
         return true;
     }
 }

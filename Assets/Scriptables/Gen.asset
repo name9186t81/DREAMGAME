@@ -12,7 +12,7 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 8a337c25e5459044894ecb4d690a647a, type: 3}
   m_Name: Gen
   m_EditorClassIdentifier: Assembly-CSharp::Networking.PackageGeneratorDescriptor
-  _type: 19
+  _type: 21
   _flags: 1
   _pathFromCore: Scripts/Networking/Packages
   _descriptors:
@@ -20,11 +20,15 @@ MonoBehaviour:
     IsArray: 0
     CustomStructTypeName: 
     DefaultType: 0
-  - Name: Target
+  - Name: EventID
     IsArray: 0
     CustomStructTypeName: 
     DefaultType: 5
-  - Name: SnapshotData
+  - Name: TimeStamp
     IsArray: 0
+    CustomStructTypeName: 
+    DefaultType: 2
+  - Name: EventData
+    IsArray: 1
     CustomStructTypeName: 
     DefaultType: 5

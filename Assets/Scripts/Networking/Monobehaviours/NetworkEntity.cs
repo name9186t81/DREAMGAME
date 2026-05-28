@@ -75,6 +75,16 @@ namespace Networking
             return true;
         }
 
+        protected void SendEvent(EntityEvent @event, byte[] data)
+        {
+            SendPackageToServer(new EntityEventPackage(_entityID, (byte)@event, NetworkManager.Instance.Client.RunTime, data));
+        }
+
+        protected virtual void ProcessEvent(EntityEvent @event, byte[] data)
+        {
+
+        }
+
         public void AddSnapshotRequest(byte target)
         {
             _snapshotRequest.Enqueue(target);
@@ -195,6 +205,11 @@ namespace Networking
 
         protected virtual bool ProcessPackage(IPackage package)
         {
+            if(package.Type == PackageType.EntityEvent)
+            {
+                EntityEventPackage converted = (EntityEventPackage)package;
+                ProcessEvent((EntityEvent)converted.EventID, converted.EventData);
+            }
             return true;
         }
 

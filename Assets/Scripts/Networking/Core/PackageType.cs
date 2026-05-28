@@ -22,6 +22,7 @@ namespace Networking
         EntityDestroyPackage,
         SnapshotRequest,
         Snapshot,
-        NetworkObjectRequest
+        NetworkObjectRequest,
+        EntityEvent
     }
 }

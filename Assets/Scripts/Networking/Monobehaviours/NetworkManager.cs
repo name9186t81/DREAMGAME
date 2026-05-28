@@ -182,6 +182,8 @@ namespace Networking
 
                 _spawnedEntitiesIDs.Remove(clientID);
                 _spawnedEntitiesIDs.Add(netObj, serverID);
+                _spawnedObjects.Remove(clientID);
+                _spawnedObjects.Add(clientID, netObj);
             }
         }
 
