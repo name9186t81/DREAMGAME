@@ -51,6 +51,7 @@ public class PlayerMovement : MonoBehaviour
     [SerializeField] private float _maxGravityStrength;
     [SerializeField, Range(0, 1f)] private float _groundedThreshold = 0.9f;
     private Vector3 _gravityForce;
+    private float _gravityChangeCooldown;
     private int _stepsSinceGrounded;
     public event Action<ContactPoint> OnLanding;
     public event Action OnBecomingAirborn;
@@ -71,6 +72,7 @@ public class PlayerMovement : MonoBehaviour
     private bool _isJumping;
     private bool _wantToJump;
 
+    private Vector3 _targetGroundDirection;
     private Vector3 _groundDirection; //acts as -gravity vector
     private Vector3 _groundNormal;
     private Vector3 _lastGroundPosition;
@@ -84,7 +86,7 @@ public class PlayerMovement : MonoBehaviour
     private void Awake()
     {
         Application.runInBackground = true;
-        _groundNormal = _initialJumpVector = _groundDirection = Vector3.up;
+        _targetGroundDirection = _groundNormal = _initialJumpVector = _groundDirection = Vector3.up;
         _rigidbody = GetComponent<Rigidbody>();
         _rigidbody.sleepThreshold = 0;
         _rigidbody.useGravity = false;
@@ -122,6 +124,7 @@ public class PlayerMovement : MonoBehaviour
 
     private void Update()
     {
+        _gravityChangeCooldown -= Time.deltaTime;
         if (_inputDisabled) return;
 
         if(!_isJumping && Input.GetKeyDown(KeyCode.Space))
@@ -166,6 +169,7 @@ public class PlayerMovement : MonoBehaviour
 
     private void FixedUpdate()
     {
+        _groundDirection = Vector3.Slerp(_groundDirection, _targetGroundDirection, Time.deltaTime * 20);
         if (_wantToJump && _isGrounded)
         {
             OnJump?.Invoke();
@@ -363,9 +367,20 @@ public class PlayerMovement : MonoBehaviour
         _isGrounded |= isGrounded;
     }
 
-    public void SetGravity(Vector3 direction)
+    [SerializeField] private float __test;
+    public void SetGravity(Vector3 direction, bool putOnCooldown)
     {
-        _groundDirection = direction;
+        if(Vector3.Dot(direction, Vector3.down) > 0.99f) //todo: look into strange bug with down gravity direction change
+        {
+            direction = new Vector3(0.02f, -1f, 0f).normalized;
+        }
+
+        _targetGroundDirection = direction;
+
+        if (putOnCooldown)
+        {
+            _gravityChangeCooldown = __test;
+        }
     }
 
     private void OnDrawGizmos()
@@ -417,6 +432,7 @@ public class PlayerMovement : MonoBehaviour
         return -1f;
     }
 
+    public bool CanChangeGravityFromZone => _gravityChangeCooldown < 0f;
     public float MaxWalkSpeed => _maxWalkSpeed;
     public bool IsSliding => _isSliding;
     public float SlideDistance => _slideDistance;

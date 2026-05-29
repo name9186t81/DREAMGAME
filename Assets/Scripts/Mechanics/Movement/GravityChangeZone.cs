@@ -1,3 +1,4 @@
+using System.Collections.Generic;
 using UnityEngine;
 
 [RequireComponent(typeof(BoxCollider))]
@@ -16,9 +17,9 @@ public class GravityChangeZone : MonoBehaviour
 
     private void OnTriggerEnter(Collider other)
     {
-        if(other.transform.TryGetComponent<PlayerMovement>(out var movement))
+        if(other.transform.TryGetComponent<PlayerMovement>(out var movement) && movement.enabled && movement.CanChangeGravityFromZone)
         {
-            movement.SetGravity(GetDirection);
+            movement.SetGravity(GetDirection, true);
         }
     }
 
