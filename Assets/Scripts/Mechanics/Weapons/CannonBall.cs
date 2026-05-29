@@ -100,7 +100,6 @@ namespace Mechanics.Weapons
             for(int i = 0; i < 4; i++)
             {
                 int num = combination & 3;
-                Debug.LogError(num);
                 if(rawCombinations.TryGetValue(num, out _))
                 {
                     rawCombinations[num]++;
@@ -115,7 +114,6 @@ namespace Mechanics.Weapons
             foreach(var el in rawCombinations)
             {
                 _elementsCounts.Add((Cannon.ElementType)el.Key, el.Value);
-                Debug.Log($"key - {(Cannon.ElementType)el.Key} val - {el.Value}");  
             }
 
             foreach(var el in __staticElementCounts)
