@@ -9819,7 +9819,7 @@ MonoBehaviour:
   m_EditorClassIdentifier: Assembly-CSharp::Mechanics.Weapons.CannonBall
   _explosionRadius: 4
   _defaultDamage: 80
-  _projectileSpeed: 15
+  _projectileSpeed: 30.4
   _damageFalloff:
     serializedVersion: 2
     m_Curve:

@@ -35806,7 +35806,7 @@ ParticleSystem:
       m_PreInfinity: 2
       m_PostInfinity: 2
       m_RotationOrder: 4
-  moveWithTransform: 0
+  moveWithTransform: 1
   moveWithCustomTransform: {fileID: 0}
   scalingMode: 1
   randomSeed: 0
@@ -35987,7 +35987,7 @@ ParticleSystem:
     startSize:
       serializedVersion: 2
       minMaxState: 0
-      scalar: 1
+      scalar: 2.02
       minScalar: 1
       maxCurve:
         serializedVersion: 2
@@ -40799,7 +40799,7 @@ MonoBehaviour:
   _rotationX: 258.4494
   _rotationY: -23.24999
   _airResistanceFactor: 0.2
-  _maxWalkSpeed: 15
+  _maxWalkSpeed: 5.7
   _acceleration: 0.85
   _slideFalloff:
     serializedVersion: 2
@@ -40831,7 +40831,7 @@ MonoBehaviour:
   _ignoreSnapping: 1
   _maxGravityReachTime: 3
   _maxGravityStrength: 25
-  _groundedThreshold: 0.7
+  _groundedThreshold: 0.5
   _maxJumpHeight: 3
   _jumpTime: 0.5
   _jumpCurve:
